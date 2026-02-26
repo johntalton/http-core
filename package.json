@@ -1,0 +1,21 @@
+{
+  "name": "@johntalton/http-core",
+  "type": "module",
+  "version": "1.0.0",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src/*.js"
+  ],
+  "repository": {
+    "url": "https://github.com/johntalton/http-core"
+  },
+  "scripts": {
+  },
+  "dependencies": {
+    "@johntalton/http-util": "^5.0.0",
+    "@johntalton/sse-util": "^1.0.0"
+  }
+}
