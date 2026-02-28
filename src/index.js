@@ -1,11 +1,11 @@
-import http2 from 'node:http2'
-import fs from 'node:fs'
 import crypto from 'node:crypto'
+import fs from 'node:fs'
+import http2 from 'node:http2'
 
 import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
 
-import { preamble } from './preamble.js'
 import { epilogue } from './epilogue.js'
+import { preamble } from './preamble.js'
 
 const {
 	HTTP2_METHOD_GET,
@@ -17,6 +17,12 @@ const {
 	HTTP2_METHOD_DELETE,
 	HTTP2_METHOD_TRACE
 } = http2.constants
+
+const {
+	SSL_OP_NO_TLSv1,
+	SSL_OP_NO_TLSv1_1,
+	SSL_OP_NO_TLSv1_2,
+} = crypto.constants
 
 export const KNOWN_METHODS = [
 	HTTP2_METHOD_GET,
@@ -311,7 +317,7 @@ export const KNOWN_METHODS = [
  * @param {Http2Stream} stream
  * @returns {stream is ServerHttp2Stream}
  */
-function isServerStream(stream) {
+export function isServerStream(stream) {
 	if(stream === null) { return false }
 	return true
 }
@@ -347,19 +353,19 @@ export function isValidMethod(method) {
  */
 export function closeCodeToString(rstCode) {
 	if(rstCode === http2.constants.NGHTTP2_NO_ERROR) { return '(No Error)' }
-	else if(rstCode === http2.constants.NGHTTP2_PROTOCOL_ERROR) { return '(Protocol Error)' }
-	else if(rstCode === http2.constants.NGHTTP2_INTERNAL_ERROR) { return '(Internal Error)' }
-	else if(rstCode === http2.constants.NGHTTP2_FLOW_CONTROL_ERROR) { return '(Flow Control Error)' }
-	else if(rstCode === http2.constants.NGHTTP2_SETTINGS_TIMEOUT) { return '(Settings Timeout)' }
-	else if(rstCode === http2.constants.NGHTTP2_STREAM_CLOSED) { return '(Closed)' }
-	else if(rstCode === http2.constants.NGHTTP2_FRAME_SIZE_ERROR) { return '(Frame Size Error)' }
-	else if(rstCode === http2.constants.NGHTTP2_REFUSED_STREAM) { return '(Refused)' }
-	else if(rstCode === http2.constants.NGHTTP2_CANCEL) { return '(Cancel)' }
-	else if(rstCode === http2.constants.NGHTTP2_COMPRESSION_ERROR) { return '(Compression Error)' }
-	else if(rstCode === http2.constants.NGHTTP2_CONNECT_ERROR) { return '(Connect Error)' }
-	else if(rstCode === http2.constants.NGHTTP2_ENHANCE_YOUR_CALM) { return '(Chill)' }
-	else if(rstCode === http2.constants.NGHTTP2_INADEQUATE_SECURITY) { return '(Inadequate Security)' }
-	else if(rstCode === http2.constants.NGHTTP2_HTTP_1_1_REQUIRED) { return '(HTTP 1.1 Requested)' }
+	if(rstCode === http2.constants.NGHTTP2_PROTOCOL_ERROR) { return '(Protocol Error)' }
+	if(rstCode === http2.constants.NGHTTP2_INTERNAL_ERROR) { return '(Internal Error)' }
+	if(rstCode === http2.constants.NGHTTP2_FLOW_CONTROL_ERROR) { return '(Flow Control Error)' }
+	if(rstCode === http2.constants.NGHTTP2_SETTINGS_TIMEOUT) { return '(Settings Timeout)' }
+	if(rstCode === http2.constants.NGHTTP2_STREAM_CLOSED) { return '(Closed)' }
+	if(rstCode === http2.constants.NGHTTP2_FRAME_SIZE_ERROR) { return '(Frame Size Error)' }
+	if(rstCode === http2.constants.NGHTTP2_REFUSED_STREAM) { return '(Refused)' }
+	if(rstCode === http2.constants.NGHTTP2_CANCEL) { return '(Cancel)' }
+	if(rstCode === http2.constants.NGHTTP2_COMPRESSION_ERROR) { return '(Compression Error)' }
+	if(rstCode === http2.constants.NGHTTP2_CONNECT_ERROR) { return '(Connect Error)' }
+	if(rstCode === http2.constants.NGHTTP2_ENHANCE_YOUR_CALM) { return '(Chill)' }
+	if(rstCode === http2.constants.NGHTTP2_INADEQUATE_SECURITY) { return '(Inadequate Security)' }
+	if(rstCode === http2.constants.NGHTTP2_HTTP_1_1_REQUIRED) { return '(HTTP 1.1 Requested)' }
 
 	return `(${rstCode})`
 }
@@ -372,15 +378,9 @@ export const REQUEST_ID_SIZE = 5
 export function requestId() {
 	const buffer = new Uint8Array(REQUEST_ID_SIZE)
 	crypto.getRandomValues(buffer)
-	// @ts-ignore
+	// @ts-expect-error
 	return buffer.toHex()
 }
-
-const {
-	SSL_OP_NO_TLSv1,
-	SSL_OP_NO_TLSv1_1,
-	SSL_OP_NO_TLSv1_2,
-} = crypto.constants
 
 /**
  * @typedef {Object} H2CoreOptions

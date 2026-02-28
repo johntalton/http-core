@@ -1,5 +1,5 @@
-import { Response } from '@johntalton/http-util/response/object'
 import { MIME_TYPE_JSON } from '@johntalton/http-util/headers'
+import { Response } from '@johntalton/http-util/response/object'
 import { ServerSentEvents } from '@johntalton/sse-util'
 
 /** @import { ServerHttp2Stream } from 'node:http2' */
@@ -34,9 +34,10 @@ function addSSEPortHandler(stream, port, streamId, shutdownSignal) {
 	port.onmessage = message => {
 		const { data } = message
 		console.log('sending sse data', streamId, data)
-		// ServerSentEvents.messageToEventStreamLines(data)
-		ServerSentEvents.lineGen(data)
-			.forEach(line => stream.write(line))
+
+		for(const line of ServerSentEvents.lineGen(data)) {
+			stream.write(line)
+		}
 	}
 }
 

@@ -3,24 +3,30 @@ import { TLSSocket } from 'node:tls'
 
 import { requestBody } from '@johntalton/http-util/body'
 import {
-	MIME_TYPE_JSON,
-	MIME_TYPE_TEXT,
-	MIME_TYPE_XML,
-	MIME_TYPE_EVENT_STREAM,
-	MIME_TYPE_MESSAGE_HTTP,
-	parseContentType,
-
 	Accept,
 	AcceptEncoding,
 	AcceptLanguage,
 
-	Forwarded,
-	FORWARDED_KEY_FOR,
-	KNOWN_FORWARDED_KEYS,
 	Conditional,
-	ETag
+	ETag,
+
+	FORWARDED_KEY_FOR,
+	Forwarded,
+	KNOWN_FORWARDED_KEYS,
+
+	MIME_TYPE_EVENT_STREAM,
+	MIME_TYPE_JSON,
+	MIME_TYPE_MESSAGE_HTTP,
+	MIME_TYPE_TEXT,
+	MIME_TYPE_XML,
+	parseContentType
 } from '@johntalton/http-util/headers'
-import { ENCODER_MAP, HTTP_HEADER_FORWARDED, HTTP_HEADER_ORIGIN } from '@johntalton/http-util/response'
+import {
+	ENCODER_MAP,
+	HTTP_HEADER_FORWARDED,
+	HTTP_HEADER_ORIGIN
+} from '@johntalton/http-util/response'
+
 import { isValidHeader, isValidLikeHeader, isValidMethod } from './index.js'
 
 /** @import { ServerHttp2Stream, IncomingHttpHeaders } from 'node:http2' */
@@ -29,8 +35,8 @@ import { isValidHeader, isValidLikeHeader, isValidMethod } from './index.js'
 const { HTTP2_METHOD_OPTIONS, HTTP2_METHOD_TRACE } = http2.constants
 
 const {
-	HTTP2_HEADER_METHOD,
 	HTTP2_HEADER_AUTHORITY,
+	HTTP2_HEADER_METHOD,
 	HTTP2_HEADER_SCHEME,
 	HTTP2_HEADER_PATH,
 	HTTP2_HEADER_AUTHORIZATION,
@@ -73,8 +79,10 @@ const ALLOWED_ORIGINS = (process.env['ALLOWED_ORIGINS'] ?? '').split(',').map(s 
 
 const ALLOW_TRACE = process.env['ALLOW_TRACE'] === 'true'
 
-const BODY_TIMEOUT_SEC = 2 * 1000
-const BODY_BYTE_LENGTH = 1000 * 1000
+const MSEC_PER_SEC = 1000
+const BODY_TIMEOUT_MSEC = 2 * MSEC_PER_SEC
+const BYTE_PER_K = 1024
+const BODY_BYTE_LENGTH = BYTE_PER_K * BYTE_PER_K
 
 // const ipRateLimitStore = new Map()
 // const ipRateLimitPolicy = {
@@ -139,10 +147,8 @@ export function preamble(config, streamId, stream, headers, servername, shutdown
 	// const secFetchDest = header[HTTP_HEADER_SEC_FETCH_DEST]
 
 	//
-	const allowedOrigin = (origin !== undefined) ?
-		((ALLOWED_ORIGINS.includes(origin) || ALLOWED_ORIGINS.includes('*')) ?
-		(URL.canParse(origin) ?
-		origin : undefined) : undefined) : undefined
+	const allowedOrigin = (ALLOWED_ORIGINS.includes('*') || ((origin !== undefined) && URL.canParse(origin) && ALLOWED_ORIGINS.includes(origin))) ? origin : undefined
+
 
 	/** @type {RouteRequest|RouteAction} */
 	const state = {
@@ -249,7 +255,7 @@ export function preamble(config, streamId, stream, headers, servername, shutdown
 	//
 	if(method === HTTP2_METHOD_TRACE) {
 		if(!ALLOW_TRACE) { return { ...state, type: 'not-allowed', method, methods: [], url: requestUrl }}
-		const maxForwardsValue = maxForwards !== undefined ? parseInt(maxForwards) : 0
+		const maxForwardsValue = maxForwards !== undefined ? Number.parseInt(maxForwards) : 0
 		const preambleEnd = performance.now()
 		state.meta.performance.push({ name: 'preamble-trace', duration: preambleEnd - preambleStart })
 		if(acceptObject.type !== MIME_TYPE_MESSAGE_HTTP) { return { ...state, type: 'not-acceptable', acceptableMediaTypes: [ MIME_TYPE_MESSAGE_HTTP ] } }
@@ -259,14 +265,14 @@ export function preamble(config, streamId, stream, headers, servername, shutdown
 	//
 	// setup future body
 	//
-	const contentLength = fullContentLength === undefined ? undefined : parseInt(fullContentLength, 10)
+	const contentLength = fullContentLength === undefined ? undefined : Number.parseInt(fullContentLength, 10)
 	const body = requestBody(stream, {
 		byteLimit: BODY_BYTE_LENGTH,
 		contentLength,
 		contentType,
 		signal: AbortSignal.any([
 			shutdownSignal,
-			AbortSignal.timeout(BODY_TIMEOUT_SEC)
+			AbortSignal.timeout(BODY_TIMEOUT_MSEC)
 		])
 	})
 
