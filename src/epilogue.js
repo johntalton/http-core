@@ -54,17 +54,18 @@ export function epilogue(state) {
 		case 'trace': { Response.trace(stream, state.method, state.url, state.headers, meta) } break
 		//
 		case 'preflight': { Response.preflight(stream, state.methods, state.supportedQueryTypes, undefined, meta) } break
-		// case 'no-content': { Response.noContent(stream, state.etag, meta)} break
+		case 'no-content': { Response.noContent(stream, state.etag, meta)} break
 		// case 'accepted': { Response.accepted(stream, meta) } break
 		case 'created': { Response.created(stream, new URL(state.location, meta.origin), state.etag, meta) } break
 		case 'not-modified': { Response.notModified(stream, state.etag, state.age, { priv: true, maxAge: 60 }, meta) } break
 
 		//
 		// case 'multiple-choices': { Response.multipleChoices(stream, meta) } break
-		// case 'gone': { Response.gone(stream, meta) } break
-		// case 'moved-permanently': { Response.movedPermanently(stream, state.location, meta) } break
-		// case 'see-other': { Response.seeOther(stream, state.location, meta) } break
-		// case 'temporary-redirect': { Response.temporaryRedirect(stream, state.location, meta) } break
+		case 'gone': { Response.gone(stream, meta) } break
+		case 'moved-permanently': { Response.movedPermanently(stream, state.location, meta) } break
+		case 'see-other': { Response.seeOther(stream, state.location, meta) } break
+		case 'temporary-redirect': { Response.temporaryRedirect(stream, state.location, meta) } break
+		case 'permanent-redirect': { Response.permanentRedirect(stream, state.location, meta) } break
 
 		//
 		case '404': { Response.notFound(stream, state.message, meta) } break
@@ -75,13 +76,14 @@ export function epilogue(state) {
 		case 'unprocessable': { Response.unprocessable(stream, meta) } break
 		case 'precondition-failed': { Response.preconditionFailed(stream, meta) } break
 		case 'not-satisfiable': { Response.rangeNotSatisfiable(stream, { size: state.contentLength }, meta) } break
-		// case 'content-too-large': { Response.contentTooLarge(stream, meta) } break
-		// case 'insufficient-storage': { Response.insufficientStorage(stream, meta) } break
-		// case 'too-many-requests': { Response.tooManyRequests(stream, state.limit, state.policies, meta) } break
-		// case 'unauthorized': { Response.unauthorized(stream, meta) } break
+		case 'content-too-large': { Response.contentTooLarge(stream, meta) } break
+		case 'insufficient-storage': { Response.insufficientStorage(stream, meta) } break
+		case 'too-many-requests': { Response.tooManyRequests(stream, state.limit, state.policies, meta) } break
+		case 'unauthorized': { Response.unauthorized(stream, state.challenge, meta) } break
+		case 'forbidden': { Response.forbidden(stream, meta) } break
 		case 'unavailable': { Response.unavailable(stream, state.message, state.retryAfter, meta)} break
 		case 'not-implemented': { Response.notImplemented(stream, state.message, meta)} break
-		// case 'timeout': { Response.timeout(stream, meta) } break
+		case 'timeout': { Response.timeout(stream, meta) } break
 
 		//
 		case 'sse': {

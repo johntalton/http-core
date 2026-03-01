@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/nursery/noExcessiveLinesPerFile: legacy */
 import crypto from 'node:crypto'
 import fs from 'node:fs'
 import http2 from 'node:http2'
@@ -41,14 +42,46 @@ export const KNOWN_METHODS = [
 
 /** @import { Metadata } from '@johntalton/http-util/response' */
 /** @import { BodyFuture } from '@johntalton/http-util/body' */
-/** @import { EtagItem, IMFFixDate, ContentRangeDirective } from '@johntalton/http-util/headers' */
+/** @import { EtagItem, IMFFixDate, ContentRangeDirective, RateLimitPolicyInfo, RateLimitInfo, ChallengeItem } from '@johntalton/http-util/headers' */
 /** @import { SendBody } from '@johntalton/http-util/response' */
 
 /** @typedef {(state: RouteRequest|RouteAction) => Promise<RouteAction>} Router */
 
 /** @typedef {'request'} RouteTypeRequest */
-/** @typedef {'partial-bytes'|'bytes'|'json'|'404'|'sse'|'error'|'preflight'|'not-allowed'|'trace'|'created'|'unsupported-media'|'not-modified'|'precondition-failed'|'unprocessable'|'not-acceptable'|'conflict'|'not-implemented'|'unavailable'|'not-satisfiable'} RouteType */
-/** @typedef {'GET'|'HEAD'|'POST'|'PUT'|'OPTIONS'|'DELETE'|'TRACE'} RouteMethod */
+/** @typedef {
+	'partial-bytes' |
+	'bytes' |
+	'json' |
+	'404' |
+	'sse' |
+	'error' |
+	'preflight' |
+	'not-allowed' |
+	'trace' |
+	'created' |
+	'unsupported-media' |
+	'not-modified' |
+	'precondition-failed' |
+	'unprocessable' |
+	'not-acceptable' |
+	'conflict' |
+	'not-implemented' |
+	'unavailable' |
+	'not-satisfiable' |
+	'see-other' |
+	'temporary-redirect' |
+	'permanent-redirect' |
+	'moved-permanently' |
+	'gone' |
+	'no-content' |
+	'content-too-large' |
+	'insufficient-storage' |
+	'too-many-requests' |
+	'unauthorized' |
+	'forbidden' |
+	'timeout'
+} RouteType */
+/** @typedef {'GET'|'HEAD'|'POST'|'PUT'|'PATCH'|'OPTIONS'|'DELETE'|'TRACE'|'QUERY'} RouteMethod */
 
 /** @typedef {string & { readonly _brand: 'sid' }} StreamID */
 
@@ -277,6 +310,85 @@ export const KNOWN_METHODS = [
  */
 /** @typedef {RouteBase & RouteNotSatisfiableBase} RouteNotSatisfiable */
 
+/**
+ * @typedef {Object} RouteSeeOtherBase
+ * @property {'see-other'} type
+ * @property {URL} location
+ */
+/** @typedef {RouteBase & RouteSeeOtherBase} RouteSeeOther */
+
+/**
+ * @typedef {Object} RouteTemporaryRedirectBase
+ * @property {'temporary-redirect'} type
+ * @property {URL} location
+ */
+/** @typedef {RouteBase & RouteTemporaryRedirectBase} RouteTemporaryRedirect */
+
+/**
+ * @typedef {Object} RoutePermanentRedirectBase
+ * @property {'permanent-redirect'} type
+ * @property {URL} location
+ */
+/** @typedef {RouteBase & RoutePermanentRedirectBase} RoutePermanentRedirect */
+
+/**
+ * @typedef {Object} RouteMovedPermanentlyBase
+ * @property {'moved-permanently'} type
+ * @property {URL} location
+ */
+/** @typedef {RouteBase & RouteMovedPermanentlyBase} RouteMovedPermanently */
+
+/**
+ * @typedef {Object} RouteNoContentBase
+ * @property {'no-content'} type
+ * @property {EtagItem|undefined} [etag]
+ */
+/** @typedef {RouteBase & RouteNoContentBase} RouteNoContent */
+
+/**
+ * @typedef {Object} RouteGoneBase
+ * @property {'gone'} type
+ */
+/** @typedef {RouteBase & RouteGoneBase} RouteGone */
+
+/**
+ * @typedef {Object} RouteContentTooLargeBase
+ * @property {'content-too-large'} type
+ */
+/** @typedef {RouteBase & RouteContentTooLargeBase} RouteContentTooLarge */
+
+/**
+ * @typedef {Object} RouteInsufficientStorageBase
+ * @property {'insufficient-storage'} type
+ */
+/** @typedef {RouteBase & RouteInsufficientStorageBase} RouteInsufficientStorage */
+
+/**
+ * @typedef {Object} RouteTooManyRequestsBase
+ * @property {'too-many-requests'} type
+ * @property {RateLimitInfo} limit
+ * @property {Array<RateLimitPolicyInfo>} policies
+ */
+/** @typedef {RouteBase & RouteTooManyRequestsBase} RouteTooManyRequests */
+
+/**
+ * @typedef {Object} RouteUnauthorizedBase
+ * @property {'unauthorized'} type
+ * @property {Array<ChallengeItem>} challenge
+ */
+/** @typedef {RouteBase & RouteUnauthorizedBase} RouteUnauthorized */
+
+/**
+ * @typedef {Object} RouteForbiddenBase
+ * @property {'forbidden'} type
+ */
+/** @typedef {RouteBase & RouteForbiddenBase} RouteForbidden */
+
+/**
+ * @typedef {Object} RouteTimeoutBase
+ * @property {'timeout'} type
+ */
+/** @typedef {RouteBase & RouteTimeoutBase} RouteTimeout */
 
 /**
  * @typedef {Object} RouteSSEBase
@@ -307,7 +419,19 @@ export const KNOWN_METHODS = [
 	RouteNotImplemented |
 	RouteUnavailable |
 	RoutePartialBytes |
-	RouteNotSatisfiable
+	RouteNotSatisfiable |
+	RouteSeeOther |
+	RouteTemporaryRedirect |
+	RoutePermanentRedirect |
+	RouteMovedPermanently |
+	RouteNoContent |
+	RouteGone |
+	RouteContentTooLarge |
+	RouteInsufficientStorage |
+	RouteTooManyRequests |
+	RouteUnauthorized |
+	RouteForbidden |
+	RouteTimeout
 } RouteAction */
 
 /** @typedef {Record<string, string|undefined>} RouteMatches */
