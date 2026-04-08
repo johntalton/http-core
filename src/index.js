@@ -44,6 +44,8 @@ export const KNOWN_METHODS = [
 /** @import { BodyFuture } from '@johntalton/http-util/body' */
 /** @import { EtagItem, IMFFixDate, ContentRangeDirective, RateLimitPolicyInfo, RateLimitInfo, ChallengeItem } from '@johntalton/http-util/headers' */
 /** @import { SendBody } from '@johntalton/http-util/response' */
+/** @import { SecFetchSite, SecFetchMode, SecFetchDest } from '@johntalton/http-util/headers' */
+
 
 /** @typedef {(state: RouteRequest|RouteAction) => Promise<RouteAction>} Router */
 
@@ -110,6 +112,7 @@ export const KNOWN_METHODS = [
  * @property {RouteRequestAccept} accept
  * @property {RouteRemoteClient} client
  * @property {RouteConditions} conditions
+ * @property {SecFetchMetadata} secFetchMetadata
  * @property {string} SNI
  */
 /** @typedef {RouteBase & RouteRequestBase} RouteRequest */
@@ -164,6 +167,14 @@ export const KNOWN_METHODS = [
  * @property {IMFFixDate|undefined} unmodifiedSince
  * @property {IMFFixDate|EtagItem|undefined} [range]
  */
+
+/**
+ * @typedef {Object} SecFetchMetadata
+ * @property {SecFetchSite|undefined} site
+ * @property {SecFetchMode|undefined} mode
+ * @property {SecFetchDest|undefined} dest
+ */
+
 
 /**
  * @typedef {Object} RoutePreflightBase

@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/nursery/noExcessiveLinesPerFile: <explanation> */
 import http2 from 'node:http2'
 import { TLSSocket } from 'node:tls'
 
@@ -19,18 +20,22 @@ import {
 	MIME_TYPE_MESSAGE_HTTP,
 	MIME_TYPE_TEXT,
 	MIME_TYPE_XML,
+	SecFetch,
 	parseContentType
 } from '@johntalton/http-util/headers'
 import {
 	ENCODER_MAP,
 	HTTP_HEADER_FORWARDED,
-	HTTP_HEADER_ORIGIN
+	HTTP_HEADER_ORIGIN,
+	HTTP_HEADER_SEC_FETCH_DEST,
+	HTTP_HEADER_SEC_FETCH_MODE,
+	HTTP_HEADER_SEC_FETCH_SITE
 } from '@johntalton/http-util/response'
 
 import { isValidHeader, isValidLikeHeader, isValidMethod } from './index.js'
 
 /** @import { ServerHttp2Stream, IncomingHttpHeaders } from 'node:http2' */
-/** @import { Config, RouteRequest, RouteAction, StreamID, RouteConditions } from './index.js' */
+/** @import { Config, RouteRequest, RouteAction, StreamID, RouteConditions, SecFetchMetadata } from './index.js' */
 
 const { HTTP2_METHOD_OPTIONS, HTTP2_METHOD_TRACE } = http2.constants
 
@@ -142,9 +147,9 @@ export function preamble(config, streamId, stream, headers, servername, shutdown
 	// const secUA = header[HTTP_HEADER_SEC_CH_UA]
 	// const secPlatform = header[HTTP_HEADER_SEC_CH_PLATFORM]
 	// const secMobile = header[HTTP_HEADER_SEC_CH_MOBILE]
-	// const secFetchSite = header[HTTP_HEADER_SEC_FETCH_SITE]
-	// const secFetchMode = header[HTTP_HEADER_SEC_FETCH_MODE]
-	// const secFetchDest = header[HTTP_HEADER_SEC_FETCH_DEST]
+	const secFetchSite = headers[HTTP_HEADER_SEC_FETCH_SITE]
+	const secFetchMode = headers[HTTP_HEADER_SEC_FETCH_MODE]
+	const secFetchDest = headers[HTTP_HEADER_SEC_FETCH_DEST]
 
 	//
 	const allowedOrigin = (ALLOWED_ORIGINS.includes('*') || ((origin !== undefined) && URL.canParse(origin) && ALLOWED_ORIGINS.includes(origin))) ? origin : undefined
@@ -199,6 +204,15 @@ export function preamble(config, streamId, stream, headers, servername, shutdown
 
 	//
 	const requestUrl = new URL(fullPathAndQuery, `${scheme}://${authority}`)
+
+	// Sec Fetch Metadata
+	/** @type {SecFetchMetadata} */
+	const secFetchMetadata = {
+		site: SecFetch.parseSite(secFetchSite),
+		mode: SecFetch.parseMode(secFetchMode),
+		dest: SecFetch.parseDestination(secFetchDest)
+	}
+
 
 	//
 	/** @type {RouteConditions} */
@@ -294,6 +308,7 @@ export function preamble(config, streamId, stream, headers, servername, shutdown
 		body,
 		// tokens,
 		conditions,
+		secFetchMetadata,
 		accept: acceptObject,
 		client: { family, ip, port },
 		SNI
