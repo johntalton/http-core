@@ -1,7 +1,7 @@
 {
   "name": "@johntalton/http-core",
   "type": "module",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "license": "MIT",
   "exports": {
     ".": "./src/index.js"
@@ -15,7 +15,7 @@
   "scripts": {
   },
   "dependencies": {
-    "@johntalton/http-util": "^5.1.6",
+    "@johntalton/http-util": "^6.0.0",
     "@johntalton/sse-util": "^1.0.0"
   }
 }

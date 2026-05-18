@@ -24,7 +24,7 @@ function addSSEPortHandler(stream, port, streamId, shutdownSignal) {
 		port.close()
 	}))
 
-	shutdownSignal.addEventListener('abort', signalHandler)
+	shutdownSignal.addEventListener('abort', signalHandler, { once: true })
 
 	// ServerSentEvents.messageToEventStreamLines({
 	// 		comment: 'Welcome',
@@ -47,7 +47,7 @@ function addSSEPortHandler(stream, port, streamId, shutdownSignal) {
 export function epilogue(state) {
 	const { type, stream, meta, streamId } = state
 
-	meta.customHeaders.push([ 'X-Request-Id', streamId ])
+	meta.customHeaders?.push([ 'X-Request-Id', streamId ])
 
 	switch(type) {
 		//

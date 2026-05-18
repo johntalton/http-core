@@ -1,4 +1,4 @@
-/** biome-ignore-all lint/nursery/noExcessiveLinesPerFile: <explanation> */
+/** biome-ignore-all lint/nursery/noExcessiveLinesPerFile: does all the work */
 import http2 from 'node:http2'
 import { TLSSocket } from 'node:tls'
 
@@ -9,6 +9,7 @@ import {
 	AcceptLanguage,
 
 	Conditional,
+	ContentType,
 	ETag,
 
 	FORWARDED_KEY_FOR,
@@ -20,8 +21,7 @@ import {
 	MIME_TYPE_MESSAGE_HTTP,
 	MIME_TYPE_TEXT,
 	MIME_TYPE_XML,
-	SecFetch,
-	parseContentType
+	SecFetch
 } from '@johntalton/http-util/headers'
 import {
 	ENCODER_MAP,
@@ -254,7 +254,7 @@ export function preamble(config, streamId, stream, headers, servername, shutdown
 	//
 	// content negotiation
 	//
-	const contentType = parseContentType(fullContentType)
+	const contentType = ContentType.parse(fullContentType)
 	const acceptedEncoding = AcceptEncoding.select(fullAcceptEncoding, DEFAULT_SUPPORTED_ENCODINGS)
 	const accept = Accept.select(fullAccept, DEFAULT_SUPPORTED_MIME_TYPES)
 	const acceptedLanguage = AcceptLanguage.select(fullAcceptLanguage, DEFAULT_SUPPORTED_LANGUAGES)
@@ -269,7 +269,7 @@ export function preamble(config, streamId, stream, headers, servername, shutdown
 	//
 	if(method === HTTP2_METHOD_TRACE) {
 		if(!ALLOW_TRACE) { return { ...state, type: 'not-allowed', method, methods: [], url: requestUrl }}
-		const maxForwardsValue = maxForwards !== undefined ? Number.parseInt(maxForwards) : 0
+		const maxForwardsValue = maxForwards === undefined ? 0 : Number.parseInt(maxForwards)
 		const preambleEnd = performance.now()
 		state.meta.performance.push({ name: 'preamble-trace', duration: preambleEnd - preambleStart })
 		if(acceptObject.type !== MIME_TYPE_MESSAGE_HTTP) { return { ...state, type: 'not-acceptable', acceptableMediaTypes: [ MIME_TYPE_MESSAGE_HTTP ] } }
