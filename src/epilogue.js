@@ -54,10 +54,10 @@ export function epilogue(state) {
 		case 'trace': { Response.trace(stream, state.method, state.url, state.headers, meta) } break
 		//
 		case 'preflight': { Response.preflight(stream, state.methods, state.supportedQueryTypes, undefined, meta) } break
-		case 'no-content': { Response.noContent(stream, state.etag, meta)} break
+		case 'no-content': { Response.noContent(stream, state.etag, state.lastModified, meta)} break
 		// case 'accepted': { Response.accepted(stream, meta) } break
-		case 'created': { Response.created(stream, new URL(state.location, meta.origin), state.etag, meta) } break
-		case 'not-modified': { Response.notModified(stream, state.etag, state.age, { priv: true, maxAge: 60 }, meta) } break
+		case 'created': { Response.created(stream, new URL(state.location, meta.origin), state.etag, state.lastModified, meta) } break
+		case 'not-modified': { Response.notModified(stream, state.etag, state.lastModified, state.age, { priv: true, maxAge: 60 }, meta) } break
 
 		//
 		// case 'multiple-choices': { Response.multipleChoices(stream, meta) } break
@@ -74,7 +74,7 @@ export function epilogue(state) {
 		case 'not-acceptable': { Response.notAcceptable(stream, state.acceptableMediaTypes ?? [], meta)} break
 		case 'unsupported-media': { Response.unsupportedMediaType(stream, state.acceptableMediaTypes, state.supportedQueryTypes, meta) } break
 		case 'unprocessable': { Response.unprocessable(stream, meta) } break
-		case 'precondition-failed': { Response.preconditionFailed(stream, meta) } break
+		case 'precondition-failed': { Response.preconditionFailed(stream, state.etag, state.lastModified, meta) } break
 		case 'not-satisfiable': { Response.rangeNotSatisfiable(stream, { size: state.contentLength }, meta) } break
 		case 'content-too-large': { Response.contentTooLarge(stream, meta) } break
 		case 'insufficient-storage': { Response.insufficientStorage(stream, meta) } break
@@ -94,10 +94,10 @@ export function epilogue(state) {
 		}
 		break
 		case 'json': {
-			const { obj, accept, etag } = state
+			const { obj, accept, etag, lastModified } = state
 
 			if(accept.type === MIME_TYPE_JSON) {
-				Response.json(stream, obj, accept.encoding, etag, state.age, { priv: true, maxAge: 60 }, state.supportedQueryTypes, meta)
+				Response.json(stream, obj, accept.encoding, etag, lastModified, state.age, { priv: true, maxAge: 60 }, state.supportedQueryTypes, meta)
 			}
 			else {
 				// todo: but we did process the request - is that ok?
@@ -105,8 +105,8 @@ export function epilogue(state) {
 			}
 		}
 		break
-		case 'partial-bytes': { Response.partialContent(stream, state.contentType, state.objs, state.contentLength, undefined, state.etag, state.age, { maxAge: state.maxAge }, meta) } break
-		case 'bytes': { Response.bytes(stream, state.contentType, state.obj, state.contentLength, 'identity', state.etag, state.age, { maxAge: state.maxAge }, state.acceptRanges, meta) } break
+		case 'partial-bytes': { Response.partialContent(stream, state.contentType, state.objs, state.contentLength, undefined, state.etag, state.lastModified, state.age, { maxAge: state.maxAge }, meta) } break
+		case 'bytes': { Response.bytes(stream, state.contentType, state.obj, state.contentLength, 'identity', state.etag, state.lastModified, state.age, { maxAge: state.maxAge }, state.acceptRanges, meta) } break
 
 		//
 		case 'error': {

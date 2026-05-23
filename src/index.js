@@ -42,7 +42,7 @@ export const KNOWN_METHODS = [
 
 /** @import { Metadata } from '@johntalton/http-util/response' */
 /** @import { BodyFuture } from '@johntalton/http-util/body' */
-/** @import { EtagItem, IMFFixDate, ContentRangeDirective, RateLimitPolicyInfo, RateLimitInfo, ChallengeItem } from '@johntalton/http-util/headers' */
+/** @import { EtagItem, IMFFixDate, IMFFixDateInput, ContentRangeDirective, RateLimitPolicyInfo, RateLimitInfo, ChallengeItem } from '@johntalton/http-util/headers' */
 /** @import { SendBody } from '@johntalton/http-util/response' */
 /** @import { SecFetchSite, SecFetchMode, SecFetchDest } from '@johntalton/http-util/headers' */
 
@@ -191,7 +191,7 @@ export const KNOWN_METHODS = [
  * @property {'json'} type
  * @property {RouteRequestAccept} accept
  * @property {Record<any, any>} obj
- * @property {IMFFixDate|string|undefined} [lastModified]
+ * @property {IMFFixDateInput|string|undefined} [lastModified]
  * @property {EtagItem|undefined} [etag]
  * @property {number|undefined} [age]
  * @property {Array<string>|undefined} [supportedQueryTypes]
@@ -212,6 +212,7 @@ export const KNOWN_METHODS = [
  * @property {'created'} type
  * @property {URL|string} location
  * @property {EtagItem|undefined} [etag]
+ * @property {IMFFixDateInput|string|undefined} [lastModified]
  */
 /** @typedef {RouteBase & RouteCreatedBase} RouteCreated */
 
@@ -228,6 +229,7 @@ export const KNOWN_METHODS = [
  * @property {'not-modified'} type
  * @property {number} age
  * @property {EtagItem|undefined} [etag]
+ * @property {IMFFixDateInput|string|undefined} [lastModified]
  * @property {number|undefined} [age]
  */
 /** @typedef {RouteBase & RouteNotModifiedBase} RouteNotModified */
@@ -236,6 +238,7 @@ export const KNOWN_METHODS = [
  * @typedef {Object} RoutePreconditionFailedBase
  * @property {'precondition-failed'} type
  * @property {EtagItem|undefined} [etag]
+ * @property {IMFFixDateInput|string|undefined} [lastModified]
  */
 /** @typedef {RouteBase & RoutePreconditionFailedBase} RoutePreconditionFailed */
 
@@ -283,7 +286,8 @@ export const KNOWN_METHODS = [
  * @property {string} contentType
  * @property {number|undefined} [contentLength]
  * @property {SendBody|undefined} obj
- * @property {IMFFixDate|string|undefined} [lastModified]
+ * @property {RouteRequestAccept} accept
+ * @property {IMFFixDateInput|string|undefined} [lastModified]
  * @property {EtagItem|undefined} [etag]
  * @property {number|undefined} [age]
  * @property {number|undefined} [maxAge]
@@ -309,6 +313,7 @@ export const KNOWN_METHODS = [
  * @property {string} contentType
  * @property {number|undefined} [contentLength]
  * @property {EtagItem|undefined} [etag]
+ * @property {IMFFixDateInput|string|undefined} [lastModified]
  * @property {number|undefined} [age]
  * @property {number|undefined} [maxAge]
  */
@@ -353,6 +358,7 @@ export const KNOWN_METHODS = [
  * @typedef {Object} RouteNoContentBase
  * @property {'no-content'} type
  * @property {EtagItem|undefined} [etag]
+ * @property {IMFFixDateInput|string|undefined} [lastModified]
  */
 /** @typedef {RouteBase & RouteNoContentBase} RouteNoContent */
 
