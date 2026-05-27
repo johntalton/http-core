@@ -278,7 +278,7 @@ export  function preamble(preState, headers, servername) {
 		const preambleEnd = performance.now()
 		state.meta.performance.push({ name: 'preamble-trace', duration: preambleEnd - preambleStart })
 		if(acceptObject.type !== MIME_TYPE_MESSAGE_HTTP) { return { ...state, type: 'not-acceptable', acceptableMediaTypes: [ MIME_TYPE_MESSAGE_HTTP ] } }
-		return { ...state, type: 'trace', method, headers, url: requestUrl, maxForwards: maxForwardsValue, accept: acceptObject }
+		return { ...state, type: 'trace', method, headers, url: requestUrl, maxForwards: maxForwardsValue }
 	}
 
 	//
