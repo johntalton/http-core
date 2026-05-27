@@ -42,7 +42,16 @@ export const KNOWN_METHODS = [
 
 /** @import { Metadata } from '@johntalton/http-util/response' */
 /** @import { BodyFuture } from '@johntalton/http-util/body' */
-/** @import { EtagItem, IMFFixDate, IMFFixDateInput, ContentRangeDirective, RateLimitPolicyInfo, RateLimitInfo, ChallengeItem } from '@johntalton/http-util/headers' */
+/** @import {
+ EtagItem,
+ IMFFixDate,
+ IMFFixDateInput,
+ ContentRangeDirective,
+ RateLimitPolicyInfo,
+ RateLimitInfo,
+ ChallengeItem,
+ CacheControlOptions
+} from '@johntalton/http-util/headers' */
 /** @import { SendBody } from '@johntalton/http-util/response' */
 /** @import { SecFetchSite, SecFetchMode, SecFetchDest } from '@johntalton/http-util/headers' */
 
@@ -103,6 +112,20 @@ export const KNOWN_METHODS = [
  */
 
 /**
+ * @typedef {Object} RouteRequestAccept
+ * @property {string|undefined} type
+ * @property {string|undefined} encoding
+ * @property {string|undefined} language
+ */
+
+/**
+ * @typedef {Object} RouteRemoteClient
+ * @property {string|undefined} family
+ * @property {string|undefined} ip
+ * @property {number|undefined} port
+ */
+
+/**
  * @typedef {Object} RouteRequestBase
  * @property {'request'} type
  * @property {RouteMethod} method
@@ -141,23 +164,8 @@ export const KNOWN_METHODS = [
  * @property {URL} url
  * @property {IncomingHttpHeaders} headers
  * @property {number} maxForwards
- * @property {RouteRequestAccept} accept
  */
 /** @typedef {RouteBase & RouteTraceBase} RouteTrace */
-
-/**
- * @typedef {Object} RouteRequestAccept
- * @property {string|undefined} type
- * @property {string|undefined} encoding
- * @property {string|undefined} language
- */
-
-/**
- * @typedef {Object} RouteRemoteClient
- * @property {string|undefined} family
- * @property {string|undefined} ip
- * @property {number|undefined} port
- */
 
 /**
  * @typedef {Object} RouteConditions
@@ -194,6 +202,7 @@ export const KNOWN_METHODS = [
  * @property {IMFFixDateInput|string|undefined} [lastModified]
  * @property {EtagItem|undefined} [etag]
  * @property {number|undefined} [age]
+ * @property {CacheControlOptions|undefined} [cacheControl]
  * @property {Array<string>|undefined} [supportedQueryTypes]
  */
 /** @typedef {RouteBase & RouteJSONBase} RouteJSON */
@@ -231,6 +240,7 @@ export const KNOWN_METHODS = [
  * @property {EtagItem|undefined} [etag]
  * @property {IMFFixDateInput|string|undefined} [lastModified]
  * @property {number|undefined} [age]
+ * @property {CacheControlOptions|undefined} [cacheControl]
  */
 /** @typedef {RouteBase & RouteNotModifiedBase} RouteNotModified */
 
@@ -286,11 +296,10 @@ export const KNOWN_METHODS = [
  * @property {string} contentType
  * @property {number|undefined} [contentLength]
  * @property {SendBody|undefined} obj
- * @property {RouteRequestAccept} accept
  * @property {IMFFixDateInput|string|undefined} [lastModified]
  * @property {EtagItem|undefined} [etag]
  * @property {number|undefined} [age]
- * @property {number|undefined} [maxAge]
+ * @property {CacheControlOptions|undefined} [cacheControl]
  * @property {'bytes'|'none'|undefined} [acceptRanges]
  */
 /** @typedef {RouteBase & RouteBytesBase} RouteBytes */
@@ -315,7 +324,7 @@ export const KNOWN_METHODS = [
  * @property {EtagItem|undefined} [etag]
  * @property {IMFFixDateInput|string|undefined} [lastModified]
  * @property {number|undefined} [age]
- * @property {number|undefined} [maxAge]
+ * @property {CacheControlOptions|undefined} [cacheControl]
  */
 /** @typedef {RouteBase & RoutePartialBytesBase} RoutePartialBytes */
 
@@ -413,7 +422,6 @@ export const KNOWN_METHODS = [
  * @property {boolean} active
  * @property {boolean} bom
  * @property {MessagePort} port
- * @property {RouteRequestAccept} accept
  */
 /** @typedef {RouteBase & RouteSSEBase} RouteSSE */
 
@@ -621,7 +629,14 @@ export class H2CoreServer {
 			if(!isServerStream(stream)) { return }
 
 			// const start = performance.now()
-			const state = preamble(this.#h2Options.config, streamId, stream, headers, this.#h2Options.serverName, this.#controller.signal)
+			const state = preamble({
+					config: this.#h2Options.config,
+					streamId,
+					stream,
+					shutdownSignal: this.#controller.signal
+				},
+				headers,
+				this.#h2Options.serverName)
 			router(state)
 				.then(epilogue)
 				.catch(e => epilogue({ ...state, type: 'error', cause: e.message, error: e }))

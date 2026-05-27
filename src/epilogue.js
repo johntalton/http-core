@@ -57,7 +57,7 @@ export function epilogue(state) {
 		case 'no-content': { Response.noContent(stream, state.etag, state.lastModified, meta)} break
 		// case 'accepted': { Response.accepted(stream, meta) } break
 		case 'created': { Response.created(stream, new URL(state.location, meta.origin), state.etag, state.lastModified, meta) } break
-		case 'not-modified': { Response.notModified(stream, state.etag, state.lastModified, state.age, { priv: true, maxAge: 60 }, meta) } break
+		case 'not-modified': { Response.notModified(stream, state.etag, state.lastModified, state.age, state.cacheControl ?? {}, meta) } break
 
 		//
 		// case 'multiple-choices': { Response.multipleChoices(stream, meta) } break
@@ -97,7 +97,7 @@ export function epilogue(state) {
 			const { obj, accept, etag, lastModified } = state
 
 			if(accept.type === MIME_TYPE_JSON) {
-				Response.json(stream, obj, accept.encoding, etag, lastModified, state.age, { priv: true, maxAge: 60 }, state.supportedQueryTypes, meta)
+				Response.json(stream, obj, accept.encoding, etag, lastModified, state.age, state.cacheControl ?? {}, state.supportedQueryTypes, meta)
 			}
 			else {
 				// todo: but we did process the request - is that ok?
@@ -105,8 +105,8 @@ export function epilogue(state) {
 			}
 		}
 		break
-		case 'partial-bytes': { Response.partialContent(stream, state.contentType, state.objs, state.contentLength, undefined, state.etag, state.lastModified, state.age, { maxAge: state.maxAge }, meta) } break
-		case 'bytes': { Response.bytes(stream, state.contentType, state.obj, state.contentLength, 'identity', state.etag, state.lastModified, state.age, { maxAge: state.maxAge }, state.acceptRanges, meta) } break
+		case 'partial-bytes': { Response.partialContent(stream, state.contentType, state.objs, state.contentLength, undefined, state.etag, state.lastModified, state.age, state.cacheControl ?? {}, meta) } break
+		case 'bytes': { Response.bytes(stream, state.contentType, state.obj, state.contentLength, 'identity', state.etag, state.lastModified, state.age, state.cacheControl ?? {}, state.acceptRanges, meta) } break
 
 		//
 		case 'error': {

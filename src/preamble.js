@@ -99,16 +99,24 @@ const BODY_BYTE_LENGTH = BYTE_PER_K * BYTE_PER_K
 // }
 
 /**
- * @param {Config} config
- * @param {StreamID} streamId
- * @param {ServerHttp2Stream} stream
+ * @typedef {Object} PreState
+ * @property {Config} config
+ * @property {StreamID} streamId
+ * @property {ServerHttp2Stream} stream
+ * @property {AbortSignal} shutdownSignal
+ */
+
+/**
+ * @param {PreState} preState
  * @param {IncomingHttpHeaders} headers
  * @param {string|undefined} servername
- * @param {AbortSignal} shutdownSignal
  * @returns {RouteRequest|RouteAction}
  */
-export function preamble(config, streamId, stream, headers, servername, shutdownSignal) {
+
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: work horse
+export  function preamble(preState, headers, servername) {
 	const preambleStart = performance.now()
+	const { stream, shutdownSignal } = preState
 
 	//
 	const method = headers[HTTP2_HEADER_METHOD]
@@ -159,16 +167,13 @@ export function preamble(config, streamId, stream, headers, servername, shutdown
 	const state = {
 		type: 'error',
 		cause: 'initialize',
-		config,
-		streamId,
-		stream,
+		...preState,
 		meta: {
 			servername,
 			performance: [],
 			origin: allowedOrigin,
 			customHeaders: []
-		},
-		shutdownSignal
+		}
 	}
 
 	if(shutdownSignal.aborted) {
