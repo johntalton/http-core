@@ -60,37 +60,45 @@ export const KNOWN_METHODS = [
 
 /** @typedef {'request'} RouteTypeRequest */
 /** @typedef {
-	'partial-bytes' |
-	'bytes' |
-	'json' |
-	'404' |
-	'sse' |
-	'error' |
-	'preflight' |
-	'not-allowed' |
 	'trace' |
+	'im-a-teapot' |
+	'accepted' |
 	'created' |
-	'unsupported-media' |
+	'preflight' |
+	'no-content' |
 	'not-modified' |
-	'precondition-failed' |
-	'unprocessable' |
-	'not-acceptable' |
-	'conflict' |
-	'not-implemented' |
-	'unavailable' |
-	'not-satisfiable' |
+	'found' |
+
+	'gone' |
+	'moved-permanently' |
 	'see-other' |
 	'temporary-redirect' |
 	'permanent-redirect' |
-	'moved-permanently' |
-	'gone' |
-	'no-content' |
+
+	'404' |
+	'bad-request' |
+	'conflict' |
 	'content-too-large' |
-	'insufficient-storage' |
+	'forbidden' |
+	'not-acceptable' |
+	'not-allowed' |
+	'payment-required' |
+	'precondition-failed' |
+	'not-satisfiable' |
+	'timeout' |
 	'too-many-requests' |
 	'unauthorized' |
-	'forbidden' |
-	'timeout'
+	'unprocessable' |
+	'unsupported-media' |
+	'insufficient-storage' |
+	'not-implemented' |
+	'unavailable' |
+
+	'sse' |
+	'bytes' |
+	'partial-bytes' |
+	'json' |
+	'error'
 } RouteType */
 /** @typedef {'GET'|'HEAD'|'POST'|'PUT'|'PATCH'|'OPTIONS'|'DELETE'|'TRACE'|'QUERY'} RouteMethod */
 
@@ -126,48 +134,6 @@ export const KNOWN_METHODS = [
  */
 
 /**
- * @typedef {Object} RouteRequestBase
- * @property {'request'} type
- * @property {RouteMethod} method
- * @property {URL} url
- * @property {IncomingHttpHeaders} headers
- * @property {BodyFuture} body
- * @property {RouteRequestAccept} accept
- * @property {RouteRemoteClient} client
- * @property {RouteConditions} conditions
- * @property {SecFetchMetadata} secFetchMetadata
- * @property {string} SNI
- */
-/** @typedef {RouteBase & RouteRequestBase} RouteRequest */
-
-/**
- * @typedef {Object} RouteErrorBase
- * @property {'error'} type
- * @property {string} cause
- * @property {Error|undefined} [error]
- */
-/** @typedef {RouteBase & RouteErrorBase } RouteError */
-
-/**
- * @typedef {Object} RouteNotAllowedBase
- * @property {'not-allowed'} type
- * @property {RouteMethod} method
- * @property {URL} url
- * @property {Array<RouteMethod>} methods
- */
-/** @typedef {RouteBase & RouteNotAllowedBase} RouteNotAllowed */
-
-/**
- * @typedef {Object} RouteTraceBase
- * @property {'trace'} type
- * @property {RouteMethod} method
- * @property {URL} url
- * @property {IncomingHttpHeaders} headers
- * @property {number} maxForwards
- */
-/** @typedef {RouteBase & RouteTraceBase} RouteTrace */
-
-/**
  * @typedef {Object} RouteConditions
  * @property {Array<EtagItem>} match
  * @property {Array<EtagItem>} noneMatch
@@ -183,6 +149,55 @@ export const KNOWN_METHODS = [
  * @property {SecFetchDest|undefined} dest
  */
 
+/**
+ * @typedef {Object} RouteRequestBase
+ * @property {'request'} type
+ * @property {RouteMethod} method
+ * @property {URL} url
+ * @property {IncomingHttpHeaders} headers
+ * @property {BodyFuture} body
+ * @property {RouteRequestAccept} accept
+ * @property {RouteRemoteClient} client
+ * @property {RouteConditions} conditions
+ * @property {SecFetchMetadata} secFetchMetadata
+ * @property {string} SNI
+ */
+/** @typedef {RouteBase & RouteRequestBase} RouteRequest */
+
+/**
+ * @template T
+ * @typedef {[ T, ...T[] ]} NonEmptyArray
+ */
+
+/**
+ * @typedef {Object} PartialBytes
+ * @property {SendBody} obj
+ * @property {ContentRangeDirective} range
+ */
+
+
+
+
+
+
+/**
+ * @typedef {Object} RouteTraceBase
+ * @property {'trace'} type
+ * @property {RouteMethod} method
+ * @property {URL} url
+ * @property {IncomingHttpHeaders} headers
+ * @property {number} maxForwards
+*/
+/** @typedef {RouteBase & RouteTraceBase} RouteTrace */
+
+/**
+ * @typedef {Object} RouteCreatedBase
+ * @property {'created'} type
+ * @property {URL|string} location
+ * @property {EtagItem|undefined} [etag]
+ * @property {IMFFixDateInput|string|undefined} [lastModified]
+ */
+/** @typedef {RouteBase & RouteCreatedBase} RouteCreated */
 
 /**
  * @typedef {Object} RoutePreflightBase
@@ -195,43 +210,12 @@ export const KNOWN_METHODS = [
 /** @typedef {RouteBase & RoutePreflightBase} RoutePreflight */
 
 /**
- * @typedef {Object} RouteJSONBase
- * @property {'json'} type
- * @property {RouteRequestAccept} accept
- * @property {Record<any, any>} obj
- * @property {IMFFixDateInput|string|undefined} [lastModified]
- * @property {EtagItem|undefined} [etag]
- * @property {number|undefined} [age]
- * @property {CacheControlOptions|undefined} [cacheControl]
- * @property {Array<string>|undefined} [supportedQueryTypes]
- */
-/** @typedef {RouteBase & RouteJSONBase} RouteJSON */
-
-/**
- * @typedef {Object} Route404Base
- * @property {'404'} type
- * @property {string} method
- * @property {URL} url
- * @property {string} message
- */
-/** @typedef {RouteBase & Route404Base} Route404 */
-
-/**
- * @typedef {Object} RouteCreatedBase
- * @property {'created'} type
- * @property {URL|string} location
+ * @typedef {Object} RouteNoContentBase
+ * @property {'no-content'} type
  * @property {EtagItem|undefined} [etag]
  * @property {IMFFixDateInput|string|undefined} [lastModified]
  */
-/** @typedef {RouteBase & RouteCreatedBase} RouteCreated */
-
-/**
- * @typedef {Object} RouteUnsupportedMediaTypeBase
- * @property {'unsupported-media'} type
- * @property {Array<string>|string} acceptableMediaTypes
- * @property {Array<string>|undefined} [supportedQueryTypes]
- */
-/** @typedef {RouteBase & RouteUnsupportedMediaTypeBase} RouteUnsupportedMediaType */
+/** @typedef {RouteBase & RouteNoContentBase} RouteNoContent */
 
 /**
  * @typedef {Object} RouteNotModifiedBase
@@ -245,12 +229,77 @@ export const KNOWN_METHODS = [
 /** @typedef {RouteBase & RouteNotModifiedBase} RouteNotModified */
 
 /**
- * @typedef {Object} RoutePreconditionFailedBase
- * @property {'precondition-failed'} type
- * @property {EtagItem|undefined} [etag]
- * @property {IMFFixDateInput|string|undefined} [lastModified]
+ * @typedef {Object} RouteFoundBase
+ * @property {'found'} type
+ * @property {URL|string} location
  */
-/** @typedef {RouteBase & RoutePreconditionFailedBase} RoutePreconditionFailed */
+/** @typedef {RouteBase & RouteFoundBase} RouteFound */
+
+
+
+/**
+ * @typedef {Object} RouteGoneBase
+ * @property {'gone'} type
+ */
+/** @typedef {RouteBase & RouteGoneBase} RouteGone */
+
+/**
+ * @typedef {Object} RouteMovedPermanentlyBase
+ * @property {'moved-permanently'} type
+ * @property {URL|string} location
+ */
+/** @typedef {RouteBase & RouteMovedPermanentlyBase} RouteMovedPermanently */
+
+/**
+ * @typedef {Object} RouteSeeOtherBase
+ * @property {'see-other'} type
+ * @property {URL|string} location
+ */
+/** @typedef {RouteBase & RouteSeeOtherBase} RouteSeeOther */
+
+/**
+ * @typedef {Object} RouteTemporaryRedirectBase
+ * @property {'temporary-redirect'} type
+ * @property {URL|string} location
+ */
+/** @typedef {RouteBase & RouteTemporaryRedirectBase} RouteTemporaryRedirect */
+
+/**
+ * @typedef {Object} RoutePermanentRedirectBase
+ * @property {'permanent-redirect'} type
+ * @property {URL|string} location
+ */
+/** @typedef {RouteBase & RoutePermanentRedirectBase} RoutePermanentRedirect */
+
+
+
+
+/**
+ * @typedef {Object} Route404Base
+ * @property {'404'} type
+ * @property {string} method
+ * @property {string} message
+ */
+/** @typedef {RouteBase & Route404Base} Route404 */
+
+/**
+ * @typedef {Object} RouteConflictBase
+ * @property {'conflict'} type
+ * @property {string|undefined} [message]
+ */
+/** @typedef {RouteBase & RouteConflictBase} RouteConflict */
+
+/**
+ * @typedef {Object} RouteContentTooLargeBase
+ * @property {'content-too-large'} type
+ */
+/** @typedef {RouteBase & RouteContentTooLargeBase} RouteContentTooLarge */
+
+/**
+ * @typedef {Object} RouteForbiddenBase
+ * @property {'forbidden'} type
+ */
+/** @typedef {RouteBase & RouteForbiddenBase} RouteForbidden */
 
 /**
  * @typedef {Object} RouteNotAcceptableBase
@@ -262,71 +311,20 @@ export const KNOWN_METHODS = [
 /** @typedef {RouteBase & RouteNotAcceptableBase} RouteNotAcceptable */
 
 /**
- * @typedef {Object} RouteUnprocessableBase
- * @property {'unprocessable'} type
- * @property {string} message
+ * @typedef {Object} RouteNotAllowedBase
+ * @property {'not-allowed'} type
+ * @property {RouteMethod} method
+ * @property {Array<RouteMethod>} methods
  */
-/** @typedef {RouteBase & RouteUnprocessableBase} RouteUnprocessable */
+/** @typedef {RouteBase & RouteNotAllowedBase} RouteNotAllowed */
 
 /**
- * @typedef {Object} RouteConflictBase
- * @property {'conflict'} type
- * @property {string|undefined} [message]
- */
-/** @typedef {RouteBase & RouteConflictBase} RouteConflict */
-
-/**
- * @typedef {Object} RouteNotImplementedBase
- * @property {'not-implemented'} type
- * @property {string|undefined} [message]
- */
-/** @typedef {RouteBase & RouteNotImplementedBase} RouteNotImplemented */
-
-/**
- * @typedef {Object} RouteUnavailableBase
- * @property {'unavailable'} type
- * @property {string|undefined} [message]
- * @property {number|undefined} [retryAfter]
- */
-/** @typedef {RouteBase & RouteUnavailableBase} RouteUnavailable */
-
-/**
- * @typedef {Object} RouteBytesBase
- * @property {'bytes'} type
- * @property {string} contentType
- * @property {number|undefined} [contentLength]
- * @property {SendBody|undefined} obj
- * @property {IMFFixDateInput|string|undefined} [lastModified]
- * @property {EtagItem|undefined} [etag]
- * @property {number|undefined} [age]
- * @property {CacheControlOptions|undefined} [cacheControl]
- * @property {'bytes'|'none'|undefined} [acceptRanges]
- */
-/** @typedef {RouteBase & RouteBytesBase} RouteBytes */
-
-/**
- * @typedef {Object} PartialBytes
- * @property {SendBody} obj
- * @property {ContentRangeDirective} range
- */
-
-/**
- * @template T
- * @typedef {[ T, ...T[] ]} NonEmptyArray
- */
-
-/**
- * @typedef {Object} RoutePartialBytesBase
- * @property {'partial-bytes'} type
- * @property {NonEmptyArray<PartialBytes>} objs
- * @property {string} contentType
- * @property {number|undefined} [contentLength]
+ * @typedef {Object} RoutePreconditionFailedBase
+ * @property {'precondition-failed'} type
  * @property {EtagItem|undefined} [etag]
  * @property {IMFFixDateInput|string|undefined} [lastModified]
- * @property {number|undefined} [age]
- * @property {CacheControlOptions|undefined} [cacheControl]
  */
-/** @typedef {RouteBase & RoutePartialBytesBase} RoutePartialBytes */
+/** @typedef {RouteBase & RoutePreconditionFailedBase} RoutePreconditionFailed */
 
 /**
  * @typedef {Object} RouteNotSatisfiableBase
@@ -336,58 +334,10 @@ export const KNOWN_METHODS = [
 /** @typedef {RouteBase & RouteNotSatisfiableBase} RouteNotSatisfiable */
 
 /**
- * @typedef {Object} RouteSeeOtherBase
- * @property {'see-other'} type
- * @property {URL} location
+ * @typedef {Object} RouteTimeoutBase
+ * @property {'timeout'} type
  */
-/** @typedef {RouteBase & RouteSeeOtherBase} RouteSeeOther */
-
-/**
- * @typedef {Object} RouteTemporaryRedirectBase
- * @property {'temporary-redirect'} type
- * @property {URL} location
- */
-/** @typedef {RouteBase & RouteTemporaryRedirectBase} RouteTemporaryRedirect */
-
-/**
- * @typedef {Object} RoutePermanentRedirectBase
- * @property {'permanent-redirect'} type
- * @property {URL} location
- */
-/** @typedef {RouteBase & RoutePermanentRedirectBase} RoutePermanentRedirect */
-
-/**
- * @typedef {Object} RouteMovedPermanentlyBase
- * @property {'moved-permanently'} type
- * @property {URL} location
- */
-/** @typedef {RouteBase & RouteMovedPermanentlyBase} RouteMovedPermanently */
-
-/**
- * @typedef {Object} RouteNoContentBase
- * @property {'no-content'} type
- * @property {EtagItem|undefined} [etag]
- * @property {IMFFixDateInput|string|undefined} [lastModified]
- */
-/** @typedef {RouteBase & RouteNoContentBase} RouteNoContent */
-
-/**
- * @typedef {Object} RouteGoneBase
- * @property {'gone'} type
- */
-/** @typedef {RouteBase & RouteGoneBase} RouteGone */
-
-/**
- * @typedef {Object} RouteContentTooLargeBase
- * @property {'content-too-large'} type
- */
-/** @typedef {RouteBase & RouteContentTooLargeBase} RouteContentTooLarge */
-
-/**
- * @typedef {Object} RouteInsufficientStorageBase
- * @property {'insufficient-storage'} type
- */
-/** @typedef {RouteBase & RouteInsufficientStorageBase} RouteInsufficientStorage */
+/** @typedef {RouteBase & RouteTimeoutBase} RouteTimeout */
 
 /**
  * @typedef {Object} RouteTooManyRequestsBase
@@ -405,16 +355,42 @@ export const KNOWN_METHODS = [
 /** @typedef {RouteBase & RouteUnauthorizedBase} RouteUnauthorized */
 
 /**
- * @typedef {Object} RouteForbiddenBase
- * @property {'forbidden'} type
+ * @typedef {Object} RouteUnprocessableBase
+ * @property {'unprocessable'} type
+ * @property {string} message
  */
-/** @typedef {RouteBase & RouteForbiddenBase} RouteForbidden */
+/** @typedef {RouteBase & RouteUnprocessableBase} RouteUnprocessable */
 
 /**
- * @typedef {Object} RouteTimeoutBase
- * @property {'timeout'} type
+ * @typedef {Object} RouteUnsupportedMediaTypeBase
+ * @property {'unsupported-media'} type
+ * @property {Array<string>|string} acceptableMediaTypes
+ * @property {Array<string>|undefined} [supportedQueryTypes]
  */
-/** @typedef {RouteBase & RouteTimeoutBase} RouteTimeout */
+/** @typedef {RouteBase & RouteUnsupportedMediaTypeBase} RouteUnsupportedMediaType */
+
+/**
+ * @typedef {Object} RouteInsufficientStorageBase
+ * @property {'insufficient-storage'} type
+ */
+/** @typedef {RouteBase & RouteInsufficientStorageBase} RouteInsufficientStorage */
+
+/**
+ * @typedef {Object} RouteNotImplementedBase
+ * @property {'not-implemented'} type
+ * @property {string|undefined} [message]
+ */
+/** @typedef {RouteBase & RouteNotImplementedBase} RouteNotImplemented */
+
+/**
+ * @typedef {Object} RouteUnavailableBase
+ * @property {'unavailable'} type
+ * @property {string|undefined} [message]
+ * @property {number|undefined} [retryAfter]
+ */
+/** @typedef {RouteBase & RouteUnavailableBase} RouteUnavailable */
+
+
 
 /**
  * @typedef {Object} RouteSSEBase
@@ -425,38 +401,93 @@ export const KNOWN_METHODS = [
  */
 /** @typedef {RouteBase & RouteSSEBase} RouteSSE */
 
+/**
+ * @typedef {Object} RouteBytesBase
+ * @property {'bytes'} type
+ * @property {string} contentType
+ * @property {number|undefined} [contentLength]
+ * @property {SendBody|undefined} obj
+ * @property {IMFFixDateInput|string|undefined} [lastModified]
+ * @property {EtagItem|undefined} [etag]
+ * @property {number|undefined} [age]
+ * @property {CacheControlOptions|undefined} [cacheControl]
+ * @property {'bytes'|'none'|undefined} [acceptRanges]
+ */
+/** @typedef {RouteBase & RouteBytesBase} RouteBytes */
+
+
+
+ /**
+ * @typedef {Object} RoutePartialBytesBase
+ * @property {'partial-bytes'} type
+ * @property {NonEmptyArray<PartialBytes>} objs
+ * @property {string} contentType
+ * @property {number|undefined} [contentLength]
+ * @property {EtagItem|undefined} [etag]
+ * @property {IMFFixDateInput|string|undefined} [lastModified]
+ * @property {number|undefined} [age]
+ * @property {CacheControlOptions|undefined} [cacheControl]
+ */
+/** @typedef {RouteBase & RoutePartialBytesBase} RoutePartialBytes */
+
+/**
+ * @typedef {Object} RouteJSONBase
+ * @property {'json'} type
+ * @property {RouteRequestAccept} accept
+ * @property {Record<any, any>} obj
+ * @property {IMFFixDateInput|string|undefined} [lastModified]
+ * @property {EtagItem|undefined} [etag]
+ * @property {number|undefined} [age]
+ * @property {CacheControlOptions|undefined} [cacheControl]
+ * @property {Array<string>|undefined} [supportedQueryTypes]
+ */
+/** @typedef {RouteBase & RouteJSONBase} RouteJSON */
+
+/**
+ * @typedef {Object} RouteErrorBase
+ * @property {'error'} type
+ * @property {string} cause
+ * @property {Error|undefined} [error]
+ */
+/** @typedef {RouteBase & RouteErrorBase } RouteError */
+
+
 /** @typedef {
-	RouteError |
-	RouteNotAllowed |
-	RoutePreflight |
-	RouteBytes |
-	RouteJSON |
-	Route404 |
-	RouteSSE |
 	RouteTrace |
 	RouteCreated |
-	RouteUnsupportedMediaType |
+	RoutePreflight |
+	RouteNoContent |
 	RouteNotModified |
-	RoutePreconditionFailed |
-	RouteUnprocessable |
-	RouteNotAcceptable |
-	RouteConflict |
-	RouteNotImplemented |
-	RouteUnavailable |
-	RoutePartialBytes |
-	RouteNotSatisfiable |
+	RouteFound |
+
+	RouteGone |
+	RouteMovedPermanently |
 	RouteSeeOther |
 	RouteTemporaryRedirect |
 	RoutePermanentRedirect |
-	RouteMovedPermanently |
-	RouteNoContent |
-	RouteGone |
+
+	Route404 |
+	RouteConflict |
 	RouteContentTooLarge |
-	RouteInsufficientStorage |
+	RouteForbidden |
+	RouteNotAcceptable |
+	RouteNotAllowed |
+	RoutePreconditionFailed |
+	RouteNotSatisfiable |
+	RouteTimeout |
 	RouteTooManyRequests |
 	RouteUnauthorized |
-	RouteForbidden |
-	RouteTimeout
+	RouteUnprocessable |
+	RouteUnsupportedMediaType |
+	RouteInsufficientStorage |
+	RouteNotImplemented |
+	RouteUnavailable |
+
+	RouteSSE |
+	RouteBytes |
+	RoutePartialBytes |
+	RouteJSON |
+	RouteError
 } RouteAction */
 
 /** @typedef {Record<string, string|undefined>} RouteMatches */

@@ -162,7 +162,6 @@ export  function preamble(preState, headers, servername) {
 	//
 	const allowedOrigin = (ALLOWED_ORIGINS.includes('*') || ((origin !== undefined) && URL.canParse(origin) && ALLOWED_ORIGINS.includes(origin))) ? origin : undefined
 
-
 	/** @type {RouteRequest|RouteAction} */
 	const state = {
 		type: 'error',
