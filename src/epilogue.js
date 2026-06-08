@@ -1,4 +1,3 @@
-import { MIME_TYPE_JSON } from '@johntalton/http-util/headers'
 import { Response } from '@johntalton/http-util/response/object'
 import { ServerSentEvents } from '@johntalton/sse-util'
 
@@ -18,11 +17,11 @@ function addSSEPortHandler(stream, port, streamId, shutdownSignal) {
 		stream.end()
 	}
 
-	stream.once('close', (() => {
+	stream.once('close', () => {
 		console.log('stream close in sse handler', streamId)
 		shutdownSignal.removeEventListener('abort', signalHandler)
 		port.close()
-	}))
+	})
 
 	shutdownSignal.addEventListener('abort', signalHandler, { once: true })
 
@@ -97,15 +96,8 @@ export function epilogue(state) {
 			if(active) { addSSEPortHandler(stream, port, state.streamId, state.shutdownSignal) }
 		} break
 		case 'json': {
-			const { obj, accept, etag, lastModified, age, supportedQueryTypes } = state
-
-			if(accept.type === MIME_TYPE_JSON) {
-				Response.json(stream, obj, { encoding: accept.encoding, etag, lastModified, age, cacheControl: state.cacheControl ?? {} }, { supportedQueryTypes }, meta)
-			}
-			else {
-				// todo: but we did process the request - is that ok?
-				Response.notAcceptable(stream, { supportedTypes: [ MIME_TYPE_JSON ] }, meta)
-			}
+			const { obj, encoding, etag, lastModified, age, supportedQueryTypes } = state
+			Response.json(stream, obj, { encoding, etag, lastModified, age, cacheControl: state.cacheControl ?? {} }, { supportedQueryTypes }, meta)
 		} break
 		case 'partial-bytes': {
 			const { contentType, contentLength, etag, lastModified, age } = state
@@ -120,12 +112,12 @@ export function epilogue(state) {
 			cacheControl: state.cacheControl ?? {} }, meta)
 		} break
 		case 'bytes': {
-			const { contentType, contentLength, etag, lastModified, age, acceptRanges } = state
+			const { contentType, contentLength, encoding, etag, lastModified, age, acceptRanges } = state
 
 			Response.bytes(stream, state.obj, {
 				contentType,
 				contentLength,
-				encoding: 'identity',
+				encoding: encoding ?? 'identity',
 				etag,
 				lastModified,
 				age,

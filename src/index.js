@@ -43,6 +43,7 @@ export const KNOWN_METHODS = [
 /** @import { Metadata } from '@johntalton/http-util/response' */
 /** @import { BodyFuture } from '@johntalton/http-util/body' */
 /** @import {
+ AcceptItem,
  EtagItem,
  IMFFixDate,
  IMFFixDateInput,
@@ -52,6 +53,7 @@ export const KNOWN_METHODS = [
  ChallengeItem,
  CacheControlOptions
 } from '@johntalton/http-util/headers' */
+/** @import { AcceptStyleItem } from '@johntalton/http-util/util' */
 /** @import { SendBody } from '@johntalton/http-util/response' */
 /** @import { SecFetchSite, SecFetchMode, SecFetchDest } from '@johntalton/http-util/headers' */
 
@@ -120,7 +122,23 @@ export const KNOWN_METHODS = [
  */
 
 /**
+ * @typedef {Object} RouteRequestAcceptParsed
+ * @property {Array<AcceptItem> | undefined} type
+ * @property {Array<AcceptStyleItem> | undefined} encoding
+ * @property {Array<AcceptStyleItem>} language
+ */
+
+/**
+ * @typedef {Object} RouteRequestAcceptFn
+ * @property {(a: Array<string>|undefined) => AcceptItem|undefined} type
+ * @property {(a: Array<string>|undefined) => AcceptStyleItem|undefined} encoding
+ * @property {(a: Array<string>|undefined) => AcceptStyleItem|undefined} language
+ */
+
+/**
  * @typedef {Object} RouteRequestAccept
+ * @property {RouteRequestAcceptParsed} parsed
+ * @property {RouteRequestAcceptFn} select
  * @property {string|undefined} type
  * @property {string|undefined} encoding
  * @property {string|undefined} language
@@ -405,8 +423,9 @@ export const KNOWN_METHODS = [
  * @typedef {Object} RouteBytesBase
  * @property {'bytes'} type
  * @property {string} contentType
- * @property {number|undefined} [contentLength]
  * @property {SendBody|undefined} obj
+ * @property {number|undefined} [contentLength]
+ * @property {string | undefined} [encoding]
  * @property {IMFFixDateInput|string|undefined} [lastModified]
  * @property {EtagItem|undefined} [etag]
  * @property {number|undefined} [age]
@@ -414,8 +433,6 @@ export const KNOWN_METHODS = [
  * @property {'bytes'|'none'|undefined} [acceptRanges]
  */
 /** @typedef {RouteBase & RouteBytesBase} RouteBytes */
-
-
 
  /**
  * @typedef {Object} RoutePartialBytesBase
@@ -433,8 +450,8 @@ export const KNOWN_METHODS = [
 /**
  * @typedef {Object} RouteJSONBase
  * @property {'json'} type
- * @property {RouteRequestAccept} accept
  * @property {Record<any, any>} obj
+ * @property {string | undefined} [encoding]
  * @property {IMFFixDateInput|string|undefined} [lastModified]
  * @property {EtagItem|undefined} [etag]
  * @property {number|undefined} [age]

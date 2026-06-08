@@ -35,7 +35,7 @@ import {
 import { isValidHeader, isValidLikeHeader, isValidMethod } from './index.js'
 
 /** @import { ServerHttp2Stream, IncomingHttpHeaders } from 'node:http2' */
-/** @import { Config, RouteRequest, RouteAction, StreamID, RouteConditions, SecFetchMetadata } from './index.js' */
+/** @import { Config, RouteRequest, RouteAction, StreamID, RouteConditions, SecFetchMetadata, RouteRequestAccept } from './index.js' */
 
 const { HTTP2_METHOD_OPTIONS, HTTP2_METHOD_TRACE } = http2.constants
 
@@ -258,21 +258,34 @@ export  function preamble(preState, headers, servername) {
 	//
 	// content negotiation
 	//
-	const contentType = ContentType.parse(fullContentType)
-	const acceptedEncoding = AcceptEncoding.select(fullAcceptEncoding, DEFAULT_SUPPORTED_ENCODINGS)
-	const accept = Accept.select(fullAccept, DEFAULT_SUPPORTED_MIME_TYPES)
-	const acceptedLanguage = AcceptLanguage.select(fullAcceptLanguage, DEFAULT_SUPPORTED_LANGUAGES)
+	const acceptItem = Accept.parse(fullAccept)
+	const acceptEncodingItem = AcceptEncoding.parse(fullAcceptEncoding)
+	const acceptLanguageItem = AcceptLanguage.parse(fullAcceptLanguage)
+
+	/** @type {RouteRequestAccept} */
 	const acceptObject = {
-		type: accept,
-		encoding: acceptedEncoding,
-		language: acceptedLanguage
+		parsed: {
+			type: acceptItem,
+			encoding: acceptEncodingItem,
+			language: acceptLanguageItem,
+		},
+
+		get type() { return Accept.selectFrom(acceptItem, DEFAULT_SUPPORTED_MIME_TYPES) },
+		get encoding() { return AcceptEncoding.selectFrom(acceptEncodingItem, DEFAULT_SUPPORTED_ENCODINGS) },
+		get language() { return AcceptLanguage.selectFrom(acceptLanguageItem, DEFAULT_SUPPORTED_LANGUAGES) },
+
+		select: {
+			type: acceptableTypes => Accept.selectItemFrom(acceptItem, acceptableTypes ?? DEFAULT_SUPPORTED_MIME_TYPES),
+			encoding: acceptableEncodings => AcceptEncoding.selectItemFrom(acceptEncodingItem, acceptableEncodings ?? DEFAULT_SUPPORTED_ENCODINGS),
+			language: acceptableLanguages => AcceptLanguage.selectItemFrom(acceptLanguageItem, acceptableLanguages ?? DEFAULT_SUPPORTED_LANGUAGES)
+		}
 	}
 
 	//
 	// Trace
 	//
 	if(method === HTTP2_METHOD_TRACE) {
-		if(!ALLOW_TRACE) { return { ...state, type: 'not-allowed', method, methods: [], url: requestUrl }}
+		if(!ALLOW_TRACE) { return { ...state, type: 'not-allowed', method, methods: [] }}
 		const maxForwardsValue = maxForwards === undefined ? 0 : Number.parseInt(maxForwards)
 		const preambleEnd = performance.now()
 		state.meta.performance.push({ name: 'preamble-trace', duration: preambleEnd - preambleStart })
@@ -283,6 +296,7 @@ export  function preamble(preState, headers, servername) {
 	//
 	// setup future body
 	//
+	const contentType = ContentType.parse(fullContentType)
 	const contentLength = fullContentLength === undefined ? undefined : Number.parseInt(fullContentLength, 10)
 	const body = requestBody(stream, {
 		byteLimit: BODY_BYTE_LENGTH,
