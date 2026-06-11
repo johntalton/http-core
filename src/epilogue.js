@@ -99,6 +99,20 @@ export function epilogue(state) {
 			const { obj, encoding, etag, lastModified, age, supportedQueryTypes } = state
 			Response.json(stream, obj, { encoding, etag, lastModified, age, cacheControl: state.cacheControl ?? {} }, { supportedQueryTypes }, meta)
 		} break
+		case 'encoded': {
+			const { contentType, encoding, etag, lastModified, age, supportedQueryTypes } = state
+
+			Response.encoded(stream, state.obj, {
+				contentType,
+				encoding,
+				etag,
+				lastModified,
+				age,
+				cacheControl: state.cacheControl ?? {}
+			}, {
+				supportedQueryTypes
+			}, meta)
+		} break
 		case 'partial-bytes': {
 			const { contentType, contentLength, etag, lastModified, age } = state
 
@@ -112,12 +126,11 @@ export function epilogue(state) {
 			cacheControl: state.cacheControl ?? {} }, meta)
 		} break
 		case 'bytes': {
-			const { contentType, contentLength, encoding, etag, lastModified, age, acceptRanges } = state
+			const { contentType, contentLength, etag, lastModified, age, acceptRanges } = state
 
 			Response.bytes(stream, state.obj, {
 				contentType,
 				contentLength,
-				encoding: encoding ?? 'identity',
 				etag,
 				lastModified,
 				age,

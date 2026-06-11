@@ -54,7 +54,7 @@ export const KNOWN_METHODS = [
  CacheControlOptions
 } from '@johntalton/http-util/headers' */
 /** @import { AcceptStyleItem } from '@johntalton/http-util/util' */
-/** @import { SendBody } from '@johntalton/http-util/response' */
+/** @import { SendBody, NonEmptyArray } from '@johntalton/http-util/response' */
 /** @import { SecFetchSite, SecFetchMode, SecFetchDest } from '@johntalton/http-util/headers' */
 
 
@@ -99,6 +99,7 @@ export const KNOWN_METHODS = [
 	'sse' |
 	'bytes' |
 	'partial-bytes' |
+	'encoded' |
 	'json' |
 	'error'
 } RouteType */
@@ -181,11 +182,6 @@ export const KNOWN_METHODS = [
  * @property {string} SNI
  */
 /** @typedef {RouteBase & RouteRequestBase} RouteRequest */
-
-/**
- * @template T
- * @typedef {[ T, ...T[] ]} NonEmptyArray
- */
 
 /**
  * @typedef {Object} PartialBytes
@@ -423,9 +419,8 @@ export const KNOWN_METHODS = [
  * @typedef {Object} RouteBytesBase
  * @property {'bytes'} type
  * @property {string} contentType
- * @property {SendBody|undefined} obj
+ * @property {SendBody} obj
  * @property {number|undefined} [contentLength]
- * @property {string | undefined} [encoding]
  * @property {IMFFixDateInput|string|undefined} [lastModified]
  * @property {EtagItem|undefined} [etag]
  * @property {number|undefined} [age]
@@ -446,6 +441,20 @@ export const KNOWN_METHODS = [
  * @property {CacheControlOptions|undefined} [cacheControl]
  */
 /** @typedef {RouteBase & RoutePartialBytesBase} RoutePartialBytes */
+
+/**
+ * @typedef {Object} RouteEncodedBase
+ * @property {'encoded'} type
+ * @property {SendBody} obj
+ * @property {string} contentType
+ * @property {string|undefined} [encoding]
+ * @property {EtagItem|undefined} [etag]
+ * @property {IMFFixDateInput|string|undefined} [lastModified]
+ * @property {number|undefined} [age]
+ * @property {CacheControlOptions|undefined} [cacheControl]
+ * @property {Array<string>|undefined} [supportedQueryTypes]
+ */
+/** @typedef {RouteBase & RouteEncodedBase} RouteEncoded */
 
 /**
  * @typedef {Object} RouteJSONBase
@@ -503,6 +512,7 @@ export const KNOWN_METHODS = [
 	RouteSSE |
 	RouteBytes |
 	RoutePartialBytes |
+	RouteEncoded |
 	RouteJSON |
 	RouteError
 } RouteAction */
