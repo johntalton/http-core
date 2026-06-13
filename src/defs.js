@@ -485,6 +485,19 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
 	RouteError
 } RouteAction */
 
+/**
+ * @typedef {Object} H2CoreOptions
+ * @property {Config} config
+ * @property {boolean} ipv6Only
+ * @property {string} host
+ * @property {number} port
+ * @property {Array<string>} credentials
+ * @property {Array<string>} allowedOrigins
+ * @property {boolean} allowTrace
+ * @property {string|undefined} serverName
+ */
+
+
 /** @typedef {Record<string, string|undefined>} RouteMatches */
 /** @typedef {(matches: RouteMatches, state: RouteRequest) => Promise<RouteAction>} RouteFunction */
 
@@ -547,3 +560,17 @@ export function isValidMethod(method) {
 	return KNOWN_METHODS.includes(method)
 }
 
+/**
+ * @param {string|undefined} origin
+ * @param {Array<string>} allowedOrigins
+ * @returns {string|undefined}
+ */
+export function resolveAllowedOrigin(origin, allowedOrigins) {
+	if(origin === undefined) { return undefined }
+	if(!URL.canParse(origin)) { return undefined }
+
+	if(allowedOrigins.includes('*')) { return origin }
+	if(allowedOrigins.includes(origin)) { return origin }
+
+	return undefined
+}

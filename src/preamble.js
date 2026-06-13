@@ -31,10 +31,10 @@ import {
 	HTTP_HEADER_SEC_FETCH_MODE,
 	HTTP_HEADER_SEC_FETCH_SITE
 } from '@johntalton/http-util/response'
-import { isValidHeader, isValidLikeHeader, isValidMethod } from './defs.js'
+import { isValidHeader, isValidLikeHeader, isValidMethod, resolveAllowedOrigin } from './defs.js'
 
 /** @import { ServerHttp2Stream, IncomingHttpHeaders } from 'node:http2' */
-/** @import { Config, RouteRequest, RouteAction, RouteMethod, StreamID, RouteConditions, SecFetchMetadata, RouteRequestAccept } from './defs.js' */
+/** @import { Config, H2CoreOptions, RouteRequest, RouteAction, StreamID, RouteConditions, SecFetchMetadata, RouteRequestAccept } from './defs.js' */
 
 const {
 	HTTP2_METHOD_OPTIONS,
@@ -82,10 +82,6 @@ const FORWARDED_REQUIRED = process.env['FORWARDED_REQUIRED'] === 'true'
 const FORWARDED_DROP_RIGHTMOST = (process.env['FORWARDED_SKIP_LIST'] ?? '').split(',').map(s => s.trim()).filter(s => s.length > 0)
 const FORWARDED_SECRET = process.env['FORWARDED_SECRET']
 
-const ALLOWED_ORIGINS = (process.env['ALLOWED_ORIGINS'] ?? '').split(',').map(s => s.trim()).filter(s => s.length > 0)
-
-const ALLOW_TRACE = process.env['ALLOW_TRACE'] === 'true'
-
 const MSEC_PER_SEC = 1000
 const BODY_TIMEOUT_MSEC = 2 * MSEC_PER_SEC
 const BYTE_PER_K = 1024
@@ -111,12 +107,12 @@ const BODY_BYTE_LENGTH = BYTE_PER_K * BYTE_PER_K
 /**
  * @param {PreState} preState
  * @param {IncomingHttpHeaders} headers
- * @param {string|undefined} servername
+ * @param {H2CoreOptions} options
  * @returns {RouteRequest|RouteAction}
  */
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: work horse
-export  function preamble(preState, headers, servername) {
+export  function preamble(preState, headers, options) {
 	const preambleStart = performance.now()
 	const { stream, shutdownSignal } = preState
 
@@ -162,7 +158,7 @@ export  function preamble(preState, headers, servername) {
 	const secFetchDest = headers[HTTP_HEADER_SEC_FETCH_DEST]
 
 	//
-	const allowedOrigin = (ALLOWED_ORIGINS.includes('*') || ((origin !== undefined) && URL.canParse(origin) && ALLOWED_ORIGINS.includes(origin))) ? origin : undefined
+	const allowedOrigin = resolveAllowedOrigin(origin, options.allowedOrigins)
 
 	/** @type {RouteRequest|RouteAction} */
 	const state = {
@@ -170,7 +166,7 @@ export  function preamble(preState, headers, servername) {
 		cause: 'initialize',
 		...preState,
 		meta: {
-			servername,
+			servername: options.serverName,
 			performance: [],
 			origin: allowedOrigin,
 			customHeaders: []
@@ -293,7 +289,7 @@ export  function preamble(preState, headers, servername) {
 	// Trace
 	//
 	if(method === HTTP2_METHOD_TRACE) {
-		if(!ALLOW_TRACE) { return { ...state, type: 'not-allowed', method, methods: [] }}
+		if(!options.allowTrace) { return { ...state, type: 'not-allowed', method, methods: [] }}
 		const maxForwardsValue = maxForwards === undefined ? 0 : Number.parseInt(maxForwards, 10)
 		const preambleEnd = performance.now()
 		state.meta.performance.push({ name: 'preamble-trace', duration: preambleEnd - preambleStart })

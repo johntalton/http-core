@@ -7,7 +7,7 @@ import { epilogue } from './epilogue.js'
 import { preamble } from './preamble.js'
 
 /** @import { SecureServerOptions } from 'node:http2' */
-/** @import { Config, Router, StreamID } from './defs.js' */
+/** @import { H2CoreOptions, Router, StreamID } from './defs.js' */
 
 const {
 	SSL_OP_NO_TLSv1,
@@ -49,16 +49,6 @@ export function requestId() {
 	return buffer.toHex()
 }
 
-/**
- * @typedef {Object} H2CoreOptions
- * @property {Config} config
- * @property {boolean} ipv6Only
- * @property {string} host
- * @property {number} port
- * @property {Array<string>} credentials
- * @property {string|undefined} serverName
- */
-
 export class H2CoreServer {
 	#server
 	#controller
@@ -77,6 +67,8 @@ export class H2CoreServer {
 			host: h2Options?.host ?? '',
 			port: h2Options?.port ?? 0,
 			credentials: h2Options?.credentials ?? [],
+			allowedOrigins: h2Options?.allowedOrigins ?? [],
+			allowTrace: h2Options?.allowTrace ?? false,
 			serverName: h2Options?.serverName
 		}
 
@@ -154,7 +146,7 @@ export class H2CoreServer {
 					shutdownSignal: this.#controller.signal
 				},
 				headers,
-				this.#h2Options.serverName)
+				this.#h2Options)
 			router(state)
 				.then(epilogue)
 				.catch(e => epilogue({ ...state, type: 'error', cause: e.message, error: e }))
