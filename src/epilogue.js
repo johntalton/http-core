@@ -2,7 +2,7 @@ import { Response } from '@johntalton/http-util/response/object'
 import { ServerSentEvents } from '@johntalton/sse-util'
 
 /** @import { ServerHttp2Stream } from 'node:http2' */
-/** @import { RouteAction, StreamID } from './index.js' */
+/** @import { RouteAction, StreamID } from './defs.js' */
 
 /**
  * @param {ServerHttp2Stream} stream
