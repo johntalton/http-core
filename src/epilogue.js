@@ -53,9 +53,9 @@ export function epilogue(state) {
 		case 'trace': { Response.trace(stream, state.method, state.url, state.headers, meta) } break
 		// case 'im-a-teapot': { Response.imATeapot(stream, meta) } break
 		//
-		// case 'accepted': { Response.accepted(stream, meta) } break
+		// case 'accepted': { Response.accepted(stream, state.location, meta) } break
 		case 'created': { Response.created(stream, new URL(state.location, meta.origin), { etag: state.etag, lastModified: state.lastModified }, meta) } break
-		case 'preflight': { Response.preflight(stream, { supportedMethods: state.methods, supportedQueryTypes: state.supportedQueryTypes, acceptRanges: undefined }, meta) } break
+		case 'preflight': { Response.preflight(stream, { supportedTypes: state.supportedTypes, supportedMethods: state.methods, supportedQueryTypes: state.supportedQueryTypes, acceptRanges: undefined }, meta) } break
 		case 'no-content': { Response.noContent(stream, { etag: state.etag, lastModified: state.lastModified }, meta)} break
 		case 'not-modified': { Response.notModified(stream, { etag: state.etag, lastModified: state.lastModified, age: state.age, cacheControl: state.cacheControl ?? {} }, meta) } break
 		case 'found': { Response.found(stream, state.location, meta) } break
@@ -74,7 +74,7 @@ export function epilogue(state) {
 		case 'conflict': { Response.conflict(stream, meta) } break
 		case 'content-too-large': { Response.contentTooLarge(stream, meta) } break
 		case 'forbidden': { Response.forbidden(stream, meta) } break
-		case 'not-acceptable': { Response.notAcceptable(stream, { supportedTypes: state.acceptableMediaTypes ?? [] }, meta) } break
+		case 'not-acceptable': { Response.notAcceptable(stream, { acceptableTypes: state.acceptableTypes ?? [] }, meta) } break
 		case 'not-allowed': { Response.notAllowed(stream, { supportedMethods: state.methods }, meta) } break
 		// case 'payment-required': {} break
 		case 'precondition-failed': { Response.preconditionFailed(stream, { etag: state.etag, lastModified: state.lastModified }, meta) } break
@@ -83,7 +83,7 @@ export function epilogue(state) {
 		case 'too-many-requests': { Response.tooManyRequests(stream, { limitInfo: state.limit, policies: state.policies }, meta) } break
 		case 'unauthorized': { Response.unauthorized(stream, state.challenge, meta) } break
 		case 'unprocessable': { Response.unprocessable(stream, meta) } break
-		case 'unsupported-media': { Response.unsupportedMediaType(stream, { acceptableMediaType: state.acceptableMediaTypes, supportedQueryTypes: state.supportedQueryTypes }, meta) } break
+		case 'unsupported-media': { Response.unsupportedMediaType(stream, state.method, { supportedTypes: state.supportedTypes, supportedQueryTypes: state.supportedQueryTypes }, meta) } break
 		case 'insufficient-storage': { Response.insufficientStorage(stream, meta) } break
 		case 'not-implemented': { Response.notImplemented(stream, state.message, meta) } break
 		case 'unavailable': { Response.unavailable(stream, state.message, { retryAfter: state.retryAfter }, meta) } break

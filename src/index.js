@@ -1,41 +1,16 @@
-/** biome-ignore-all lint/nursery/noExcessiveLinesPerFile: legacy */
+/** biome-ignore-all lint/style/noExcessiveLinesPerFile: legacy */
 import crypto from 'node:crypto'
 import fs from 'node:fs'
 import http2 from 'node:http2'
 
-import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
-
 import { epilogue } from './epilogue.js'
 import { preamble } from './preamble.js'
-
-const {
-	HTTP2_METHOD_GET,
-	HTTP2_METHOD_HEAD,
-	HTTP2_METHOD_POST,
-	HTTP2_METHOD_PUT,
-	HTTP2_METHOD_PATCH,
-	HTTP2_METHOD_OPTIONS,
-	HTTP2_METHOD_DELETE,
-	HTTP2_METHOD_TRACE
-} = http2.constants
 
 const {
 	SSL_OP_NO_TLSv1,
 	SSL_OP_NO_TLSv1_1,
 	SSL_OP_NO_TLSv1_2,
 } = crypto.constants
-
-export const KNOWN_METHODS = [
-	HTTP2_METHOD_GET,
-	HTTP2_METHOD_HEAD,
-	HTTP2_METHOD_POST,
-	HTTP2_METHOD_PUT,
-	HTTP2_METHOD_PATCH,
-	HTTP2_METHOD_OPTIONS,
-	HTTP2_METHOD_DELETE,
-	HTTP2_METHOD_TRACE,
-	HTTP_METHOD_QUERY
-]
 
 /** @import { Http2Stream, ServerHttp2Stream, IncomingHttpHeaders } from 'node:http2' */
 /** @import { SecureServerOptions } from 'node:http2' */
@@ -54,7 +29,7 @@ export const KNOWN_METHODS = [
  CacheControlOptions
 } from '@johntalton/http-util/headers' */
 /** @import { AcceptStyleItem } from '@johntalton/http-util/util' */
-/** @import { SendBody, NonEmptyArray } from '@johntalton/http-util/response' */
+/** @import { SendBody, NonEmptyArray, SendSupportedTypes } from '@johntalton/http-util/response' */
 /** @import { SecFetchSite, SecFetchMode, SecFetchDest } from '@johntalton/http-util/headers' */
 
 
@@ -219,6 +194,7 @@ export const KNOWN_METHODS = [
  * @property {RouteMethod} method
  * @property {URL} url
  * @property {Array<RouteMethod>} methods
+ * @property {SendSupportedTypes} supportedTypes
  * @property {Array<string>|undefined} [supportedQueryTypes]
  */
 /** @typedef {RouteBase & RoutePreflightBase} RoutePreflight */
@@ -318,7 +294,7 @@ export const KNOWN_METHODS = [
 /**
  * @typedef {Object} RouteNotAcceptableBase
  * @property {'not-acceptable'} type
- * @property {Array<string>|undefined} [acceptableMediaTypes]
+ * @property {Array<string>|string|undefined} [acceptableTypes]
  * @property {Array<string>|undefined} [acceptableEncodings]
  * @property {Array<string>|undefined} [acceptableLanguages]
  */
@@ -378,7 +354,8 @@ export const KNOWN_METHODS = [
 /**
  * @typedef {Object} RouteUnsupportedMediaTypeBase
  * @property {'unsupported-media'} type
- * @property {Array<string>|string} acceptableMediaTypes
+ * @property {RouteMethod|undefined} method
+ * @property {SendSupportedTypes} supportedTypes
  * @property {Array<string>|undefined} [supportedQueryTypes]
  */
 /** @typedef {RouteBase & RouteUnsupportedMediaTypeBase} RouteUnsupportedMediaType */
@@ -527,32 +504,6 @@ export const KNOWN_METHODS = [
 export function isServerStream(stream) {
 	if(stream === null) { return false }
 	return true
-}
-
-/**
- * @param {string|undefined|Array<string>} header
- * @returns {header is string}
- */
-export function isValidHeader(header) {
-	return header !== undefined && isValidLikeHeader(header)
-}
-
-/**
- * @param {string|undefined|Array<string>} header
- * @returns {header is string|undefined}
- */
-export function isValidLikeHeader(header) {
-	return !Array.isArray(header)
-}
-
-/**
- * @param {string|undefined|Array<string>} method
- * @returns {method is RouteMethod}
- */
-export function isValidMethod(method) {
-	if(!isValidHeader(method)) { return false }
-
-	return KNOWN_METHODS.includes(method)
 }
 
 /**

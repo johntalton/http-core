@@ -1,4 +1,5 @@
-/** biome-ignore-all lint/nursery/noExcessiveLinesPerFile: does all the work */
+/** biome-ignore-all lint/style/noExcessiveLinesPerFile: does all the work */
+
 import http2 from 'node:http2'
 import { TLSSocket } from 'node:tls'
 
@@ -29,15 +30,24 @@ import {
 	HTTP_HEADER_ORIGIN,
 	HTTP_HEADER_SEC_FETCH_DEST,
 	HTTP_HEADER_SEC_FETCH_MODE,
-	HTTP_HEADER_SEC_FETCH_SITE
+	HTTP_HEADER_SEC_FETCH_SITE,
+	HTTP_METHOD_QUERY
 } from '@johntalton/http-util/response'
 
-import { isValidHeader, isValidLikeHeader, isValidMethod } from './index.js'
 
 /** @import { ServerHttp2Stream, IncomingHttpHeaders } from 'node:http2' */
-/** @import { Config, RouteRequest, RouteAction, StreamID, RouteConditions, SecFetchMetadata, RouteRequestAccept } from './index.js' */
+/** @import { Config, RouteRequest, RouteAction, RouteMethod, StreamID, RouteConditions, SecFetchMetadata, RouteRequestAccept } from './index.js' */
 
-const { HTTP2_METHOD_OPTIONS, HTTP2_METHOD_TRACE } = http2.constants
+const {
+	HTTP2_METHOD_GET,
+	HTTP2_METHOD_HEAD,
+	HTTP2_METHOD_POST,
+	HTTP2_METHOD_PUT,
+	HTTP2_METHOD_PATCH,
+	HTTP2_METHOD_OPTIONS,
+	HTTP2_METHOD_DELETE,
+	HTTP2_METHOD_TRACE
+} = http2.constants
 
 const {
 	HTTP2_HEADER_AUTHORITY,
@@ -97,6 +107,46 @@ const BODY_BYTE_LENGTH = BYTE_PER_K * BYTE_PER_K
 // 	size: 50,
 // 	quotaUnits: 1
 // }
+
+
+export const KNOWN_METHODS = [
+	HTTP2_METHOD_GET,
+	HTTP2_METHOD_HEAD,
+	HTTP2_METHOD_POST,
+	HTTP2_METHOD_PUT,
+	HTTP2_METHOD_PATCH,
+	HTTP2_METHOD_OPTIONS,
+	HTTP2_METHOD_DELETE,
+	HTTP2_METHOD_TRACE,
+	HTTP_METHOD_QUERY
+]
+
+/**
+ * @param {string|undefined|Array<string>} header
+ * @returns {header is string}
+ */
+export function isValidHeader(header) {
+	return header !== undefined && isValidLikeHeader(header)
+}
+
+/**
+ * @param {string|undefined|Array<string>} header
+ * @returns {header is string|undefined}
+ */
+export function isValidLikeHeader(header) {
+	return !Array.isArray(header)
+}
+
+/**
+ * @param {string|undefined|Array<string>} method
+ * @returns {method is RouteMethod}
+ */
+export function isValidMethod(method) {
+	if(!isValidHeader(method)) { return false }
+
+	return KNOWN_METHODS.includes(method)
+}
+
 
 /**
  * @typedef {Object} PreState
@@ -286,7 +336,7 @@ export  function preamble(preState, headers, servername) {
 	//
 	if(method === HTTP2_METHOD_TRACE) {
 		if(!ALLOW_TRACE) { return { ...state, type: 'not-allowed', method, methods: [] }}
-		const maxForwardsValue = maxForwards === undefined ? 0 : Number.parseInt(maxForwards)
+		const maxForwardsValue = maxForwards === undefined ? 0 : Number.parseInt(maxForwards, 10)
 		const preambleEnd = performance.now()
 		state.meta.performance.push({ name: 'preamble-trace', duration: preambleEnd - preambleStart })
 		if(acceptObject.type !== MIME_TYPE_MESSAGE_HTTP) { return { ...state, type: 'not-acceptable', acceptableMediaTypes: [ MIME_TYPE_MESSAGE_HTTP ] } }

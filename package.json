@@ -1,7 +1,7 @@
 {
   "name": "@johntalton/http-core",
   "type": "module",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "license": "MIT",
   "exports": {
     ".": "./src/index.js"
@@ -16,10 +16,10 @@
     "lint": "biome check"
   },
   "dependencies": {
-    "@johntalton/http-util": "^7.0.3",
+    "@johntalton/http-util": "^7.1.0",
     "@johntalton/sse-util": "^1.0.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.15"
+    "@biomejs/biome": "^2.5.0"
   }
 }
