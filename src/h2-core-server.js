@@ -118,12 +118,12 @@ export class H2CoreServer {
 		server.on('drop', data => console.log('Drop', data))
 		server.on('connection', socket => {
 			console.log('new connection', socket.remoteAddress, socket.remotePort)
-			socket.on('close', hasError => console.log(`closing socket (hasError: ${hasError})`))
+			socket.on('close', hasError => console.log('closing socket with hasError:', hasError))
 		})
 		// server.on('secureConnection', socket => console.log('new secure connection'))
 		// server.on('keylog', (data) => console.log('key log', data))
 		server.on('unknownProtocol', socket => { console.log('Unknown Protocol', socket.getProtocol()) ; socket.end() })
-		server.on('tlsClientError', (error, socket) => {
+		server.on('tlsClientError', (error, _socket) => {
 			if('code' in error) {
 				if(error.code === 'ERR_SSL_SSL/TLS_ALERT_CERTIFICATE_UNKNOWN') { return }
 				if(error.code === 'ERR_SSL_NO_SUITABLE_SIGNATURE_ALGORITHM') { return }
