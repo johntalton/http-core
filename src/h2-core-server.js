@@ -37,16 +37,33 @@ export function closeCodeToString(rstCode) {
 	return `(${rstCode})`
 }
 
-export const REQUEST_ID_SIZE = 5
+export const UNIQUE_ID_SIZE = 5
 
 /**
+ * @param {string|undefined} str
+ * @returns {str is StreamID}
+ */
+export function isStreamId(str) {
+	if(str === undefined) { return false }
+	return true
+}
+
+/**
+ * @param {string} sessionId
+ * @param {number|undefined} streamId
  * @returns {StreamID}
  */
-export function requestId() {
-	const buffer = new Uint8Array(REQUEST_ID_SIZE)
-	crypto.getRandomValues(buffer)
-	// @ts-expect-error
-	return buffer.toHex()
+export function uniqueStreamId(sessionId, streamId) {
+	const id = `${sessionId}-${streamId}`
+	if(!isStreamId(id)) { throw new Error('invalid streamId') }
+	return id
+}
+
+/**
+ * @returns {string}
+ */
+export function uniqueId() {
+	return crypto.getRandomValues(new Uint8Array(UNIQUE_ID_SIZE)).toHex()
 }
 
 export class H2CoreServer {
@@ -99,16 +116,21 @@ export class H2CoreServer {
 
 		// server.on('request', (req, res) => res.end('hello'))
 		server.on('drop', data => console.log('Drop', data))
-		server.on('connection', socket => console.log('new connection', socket.remoteAddress))
+		server.on('connection', socket => {
+			console.log('new connection', socket.remoteAddress, socket.remotePort)
+			socket.on('close', hasError => console.log(`closing socket (hasError: ${hasError})`))
+		})
 		// server.on('secureConnection', socket => console.log('new secure connection'))
 		// server.on('keylog', (data) => console.log('key log', data))
 		server.on('unknownProtocol', socket => { console.log('Unknown Protocol', socket.getProtocol()) ; socket.end() })
-		server.on('tlsClientError', (error, _socket) => {
+		server.on('tlsClientError', (error, socket) => {
 			if('code' in error) {
 				if(error.code === 'ERR_SSL_SSL/TLS_ALERT_CERTIFICATE_UNKNOWN') { return }
 				if(error.code === 'ERR_SSL_NO_SUITABLE_SIGNATURE_ALGORITHM') { return }
 				// ERR_SSL_SSL/TLS_ALERT_BAD_CERTIFICATE
 			}
+
+			// console.log('socket destroyed?', socket.destroyed)
 			console.log('TLS Error', error)
 		})
 		server.on('error', error => console.log('Server Error', error))
@@ -116,42 +138,46 @@ export class H2CoreServer {
 		server.on('listening', () => console.log('Server Up', this.#h2Options.serverName, server.address()))
 		server.on('close', () => console.log('End of Line'))
 		server.on('session', session => {
-			console.log('new session')
-			session.on('close', () => console.log('session close'))
-			session.on('error', () => console.log('session error'))
-			session.on('frameError', () => console.log('session frameError'))
-			session.on('goaway', () => console.log('session goAway'))
-		})
-		server.on('stream', (stream, headers) => {
-			const streamId = requestId()
+			const sessionId = uniqueId()
 
-			console.log('new stream', streamId, stream.id)
-			stream.on('aborted', () => console.log('stream aborted', streamId))
-			stream.on('close', () => {
-				// if(stream.rstCode !== http2.constants.NGHTTP2_NO_ERROR) {
-					console.log('stream close', streamId, closeCodeToString(stream.rstCode))
-				// }
+			console.log('new session', session.socket.remoteAddress, sessionId)
+
+			session.on('close', () => console.log('session close', sessionId))
+			session.on('error', () => console.log('session error', sessionId))
+			session.on('frameError', () => console.log('session frameError', sessionId))
+			session.on('goaway', () => console.log('session goAway', sessionId))
+			session.on('stream', (stream, headers) => {
+				const streamId = uniqueStreamId(sessionId, stream.id)
+
+				console.log('new stream', streamId)
+
+				stream.on('aborted', () => console.log('stream aborted', streamId))
+				stream.on('close', () => {
+					// if(stream.rstCode !== http2.constants.NGHTTP2_NO_ERROR) {
+						console.log('stream close', streamId, closeCodeToString(stream.rstCode))
+					// }
+				})
+				stream.on('error', error => console.log('stream error', streamId, error.message))
+				stream.on('frameError', (type, code, id) => console.log('stream frameError', streamId, type, code, id))
+
+				// tickle the type
+				if(!isServerStream(stream)) { return }
+
+				// const start = performance.now()
+				const state = preamble({
+						config: this.#h2Options.config,
+						streamId,
+						stream,
+						shutdownSignal: this.#controller.signal
+					},
+					headers,
+					this.#h2Options)
+				router(state)
+					.then(epilogue)
+					.catch(e => epilogue({ ...state, type: 'error', cause: e.message, error: e }))
+					.catch(e => console.error('Top Level Error:', streamId, e))
+					// .finally(() => console.log('perf', streamId, performance.now() - start))
 			})
-			stream.on('error', error => console.log('stream error', streamId, error.message))
-			stream.on('frameError', (type, code, id) => console.log('stream frameError', streamId, type, code, id))
-
-			// tickle the type
-			if(!isServerStream(stream)) { return }
-
-			// const start = performance.now()
-			const state = preamble({
-					config: this.#h2Options.config,
-					streamId,
-					stream,
-					shutdownSignal: this.#controller.signal
-				},
-				headers,
-				this.#h2Options)
-			router(state)
-				.then(epilogue)
-				.catch(e => epilogue({ ...state, type: 'error', cause: e.message, error: e }))
-				.catch(e => console.error('Top Level Error:', streamId, e))
-				// .finally(() => console.log('perf', streamId, performance.now() - start))
 		})
 	}
 

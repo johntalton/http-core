@@ -274,9 +274,9 @@ export  function preamble(preState, headers, options) {
 			language: acceptLanguageItem,
 		},
 
-		get type() { return Accept.selectFrom(acceptItem, DEFAULT_SUPPORTED_MIME_TYPES) },
-		get encoding() { return AcceptEncoding.selectFrom(acceptEncodingItem, DEFAULT_SUPPORTED_ENCODINGS) },
-		get language() { return AcceptLanguage.selectFrom(acceptLanguageItem, DEFAULT_SUPPORTED_LANGUAGES) },
+		get type() { throw new Error('use select.type') },
+		get encoding() { throw new Error('use select.encoding') },
+		get language() { throw new Error('use select.language') },
 
 		select: {
 			type: acceptableTypes => Accept.selectItemFrom(acceptItem, acceptableTypes ?? DEFAULT_SUPPORTED_MIME_TYPES),
@@ -291,9 +291,14 @@ export  function preamble(preState, headers, options) {
 	if(method === HTTP2_METHOD_TRACE) {
 		if(!options.allowTrace) { return { ...state, type: 'not-allowed', method, methods: [] }}
 		const maxForwardsValue = maxForwards === undefined ? 0 : Number.parseInt(maxForwards, 10)
+
 		const preambleEnd = performance.now()
 		state.meta.performance.push({ name: 'preamble-trace', duration: preambleEnd - preambleStart })
-		if(acceptObject.type !== MIME_TYPE_MESSAGE_HTTP) { return { ...state, type: 'not-acceptable', acceptableTypes: [ MIME_TYPE_MESSAGE_HTTP ] } }
+
+		if(acceptObject.select.type([ MIME_TYPE_MESSAGE_HTTP ])?.mimetype !== MIME_TYPE_MESSAGE_HTTP) {
+			return { ...state, type: 'not-acceptable', acceptableTypes: [ MIME_TYPE_MESSAGE_HTTP ] }
+		}
+
 		return { ...state, type: 'trace', method, headers, url: requestUrl, maxForwards: maxForwardsValue }
 	}
 

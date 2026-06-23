@@ -97,9 +97,9 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
 
 /**
  * @typedef {Object} RouteRequestAcceptFn
- * @property {(a: Array<string>|undefined) => AcceptItem|undefined} type
- * @property {(a: Array<string>|undefined) => AcceptStyleItem|undefined} encoding
- * @property {(a: Array<string>|undefined) => AcceptStyleItem|undefined} language
+ * @property {(acceptable?: Array<string>|undefined) => AcceptItem|undefined} type
+ * @property {(acceptable?: Array<string>|undefined) => AcceptStyleItem|undefined} encoding
+ * @property {(acceptable?: Array<string>|undefined) => AcceptStyleItem|undefined} language
  */
 
 /**
