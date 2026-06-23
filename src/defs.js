@@ -182,11 +182,11 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
 /**
  * @typedef {Object} RoutePreflightBase
  * @property {'preflight'} type
- * @property {RouteMethod} method
+ * @property {RouteMethod} method verb used in request
  * @property {URL} url
- * @property {Array<RouteMethod>} methods
- * @property {SendSupportedTypes} supportedTypes
- * @property {Array<string>|undefined} [supportedQueryTypes]
+ * @property {Array<RouteMethod>} methods list of methods supported by this route
+ * @property {SendSupportedTypes} supportedTypes mime-types supported for post/put/patch
+ * @property {Array<string>|undefined} [supportedQueryTypes] mime-types supported for query
  */
 /** @typedef {RouteBase & RoutePreflightBase} RoutePreflight */
 
