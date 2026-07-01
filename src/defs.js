@@ -132,6 +132,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {SecFetchSite|undefined} site
  * @property {SecFetchMode|undefined} mode
  * @property {SecFetchDest|undefined} dest
+ * @property {boolean} user
  */
 
 /**
@@ -263,6 +264,14 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  */
 /** @typedef {RouteBase & Route404Base} Route404 */
 
+
+/**
+ * @typedef {Object} RouteBadRequestBase
+ * @property {'bad-request'} type
+ * @property {string|undefined} message
+ */
+/** @typedef {RouteBase & RouteBadRequestBase} RouteBadRequest */
+
 /**
  * @typedef {Object} RouteConflictBase
  * @property {'conflict'} type
@@ -338,7 +347,6 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
 /**
  * @typedef {Object} RouteUnprocessableBase
  * @property {'unprocessable'} type
- * @property {string} message
  */
 /** @typedef {RouteBase & RouteUnprocessableBase} RouteUnprocessable */
 
@@ -387,7 +395,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @typedef {Object} RouteBytesBase
  * @property {'bytes'} type
  * @property {string} contentType
- * @property {SendBody} obj
+ * @property {SendBody|undefined} obj
  * @property {number|undefined} [contentLength]
  * @property {IMFFixDateInput|string|undefined} [lastModified]
  * @property {EtagItem|undefined} [etag]
@@ -413,7 +421,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
 /**
  * @typedef {Object} RouteEncodedBase
  * @property {'encoded'} type
- * @property {SendBody} obj
+ * @property {SendBody|undefined} obj
  * @property {string} contentType
  * @property {string|undefined} [encoding]
  * @property {EtagItem|undefined} [etag]
@@ -461,6 +469,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
 	RoutePermanentRedirect |
 
 	Route404 |
+	RouteBadRequest |
 	RouteConflict |
 	RouteContentTooLarge |
 	RouteForbidden |

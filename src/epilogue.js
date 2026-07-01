@@ -70,7 +70,7 @@ export function epilogue(state) {
 
 		//
 		case '404': { Response.notFound(stream, state.message, meta) } break
-		// case 'bad-request': { Response.badRequest(stream, meta) } break
+		case 'bad-request': { Response.badRequest(stream, state.message, meta) } break
 		case 'conflict': { Response.conflict(stream, meta) } break
 		case 'content-too-large': { Response.contentTooLarge(stream, meta) } break
 		case 'forbidden': { Response.forbidden(stream, meta) } break

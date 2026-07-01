@@ -29,7 +29,8 @@ import {
 	HTTP_HEADER_ORIGIN,
 	HTTP_HEADER_SEC_FETCH_DEST,
 	HTTP_HEADER_SEC_FETCH_MODE,
-	HTTP_HEADER_SEC_FETCH_SITE
+	HTTP_HEADER_SEC_FETCH_SITE,
+	HTTP_HEADER_SEC_FETCH_USER
 } from '@johntalton/http-util/response'
 import { isValidHeader, isValidLikeHeader, isValidMethod, resolveAllowedOrigin } from './defs.js'
 
@@ -156,6 +157,7 @@ export  function preamble(preState, headers, options) {
 	const secFetchSite = headers[HTTP_HEADER_SEC_FETCH_SITE]
 	const secFetchMode = headers[HTTP_HEADER_SEC_FETCH_MODE]
 	const secFetchDest = headers[HTTP_HEADER_SEC_FETCH_DEST]
+	const secFetchUser = headers[HTTP_HEADER_SEC_FETCH_USER]
 
 	//
 	const allowedOrigin = resolveAllowedOrigin(origin, options.allowedOrigins)
@@ -212,7 +214,8 @@ export  function preamble(preState, headers, options) {
 	const secFetchMetadata = {
 		site: SecFetch.parseSite(secFetchSite),
 		mode: SecFetch.parseMode(secFetchMode),
-		dest: SecFetch.parseDestination(secFetchDest)
+		dest: SecFetch.parseDestination(secFetchDest),
+		user: SecFetch.parseUser(secFetchUser)
 	}
 
 	//
