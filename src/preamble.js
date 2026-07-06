@@ -8,6 +8,10 @@ import {
 	AcceptEncoding,
 	AcceptLanguage,
 
+	AccessControlRequestHeaders,
+
+	AccessControlRequestMethod,
+
 	Conditional,
 	ContentType,
 	ETag,
@@ -34,11 +38,10 @@ import {
 } from '@johntalton/http-util/response'
 import { isValidHeader, isValidLikeHeader, isValidMethod, resolveAllowedOrigin } from './defs.js'
 
-/** @import { ServerHttp2Stream, IncomingHttpHeaders } from 'node:http2' */
-/** @import { Config, H2CoreOptions, RouteRequest, RouteAction, StreamID, RouteConditions, SecFetchMetadata, RouteRequestAccept } from './defs.js' */
+/** @import { IncomingHttpHeaders } from 'node:http2' */
+/** @import { H2CoreOptions, RouteRequest, AccessControlRequest, RouteTrace, RouteNotAllowed, RouteNotImplemented, RouteNotAcceptable, RouteUnavailable, RouteError, RouteConditions, SecFetchMetadata, RouteRequestAccept } from './defs.js' */
 
 const {
-	HTTP2_METHOD_OPTIONS,
 	HTTP2_METHOD_TRACE
 } = http2.constants
 
@@ -65,6 +68,8 @@ const {
 	// HTTP2_HEADER_LAST_MODIFIED,
 	HTTP2_HEADER_MAX_FORWARDS,
 	// HTTP2_HEADER_FROM
+	HTTP2_HEADER_ACCESS_CONTROL_REQUEST_METHOD,
+	HTTP2_HEADER_ACCESS_CONTROL_REQUEST_HEADERS
 } = http2.constants
 
 const DEFAULT_SUPPORTED_LANGUAGES = [ 'en-US', 'en' ]
@@ -97,19 +102,16 @@ const BODY_BYTE_LENGTH = BYTE_PER_K * BYTE_PER_K
 // 	quotaUnits: 1
 // }
 
-/**
- * @typedef {Object} PreState
- * @property {Config} config
- * @property {StreamID} streamId
- * @property {ServerHttp2Stream} stream
- * @property {AbortSignal} shutdownSignal
- */
+
+/** @typedef {Pick<RouteRequest, 'config'|'streamId'|'stream'|'shutdownSignal'>} PreState */
+
+/** @typedef {RouteRequest | RouteTrace | RouteNotAllowed | RouteNotImplemented | RouteNotAcceptable | RouteUnavailable | RouteError } PreambleRouteResult */
 
 /**
  * @param {PreState} preState
  * @param {IncomingHttpHeaders} headers
  * @param {H2CoreOptions} options
- * @returns {RouteRequest|RouteAction}
+ * @returns {PreambleRouteResult}
  */
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: work horse
@@ -143,6 +145,10 @@ export  function preamble(preState, headers, options) {
 	//
 	// const from = headers[HTTP2_HEADER_FROM]
 
+	//
+	const fullAccessControlRequestHeaders = headers[HTTP2_HEADER_ACCESS_CONTROL_REQUEST_HEADERS]
+	const fullAccessControlRequestMethod = headers[HTTP2_HEADER_ACCESS_CONTROL_REQUEST_METHOD]
+
 	// Conditions
 	const conditionIfMatch = headers[HTTP2_HEADER_IF_MATCH]
 	const conditionIfNoneMatch = headers[HTTP2_HEADER_IF_NONE_MATCH]
@@ -162,7 +168,7 @@ export  function preamble(preState, headers, options) {
 	//
 	const allowedOrigin = resolveAllowedOrigin(origin, options.allowedOrigins)
 
-	/** @type {RouteRequest|RouteAction} */
+	/** @type {PreambleRouteResult} */
 	const state = {
 		type: 'error',
 		cause: 'initialize',
@@ -171,7 +177,8 @@ export  function preamble(preState, headers, options) {
 			servername: options.serverName,
 			performance: [],
 			origin: allowedOrigin,
-			customHeaders: []
+			customHeaders: [],
+			HSTS: undefined
 		}
 	}
 
@@ -198,6 +205,8 @@ export  function preamble(preState, headers, options) {
 	if(!isValidLikeHeader(fullAccept)) { return { ...state, type: 'error', cause: 'improper header (accept)' }}
 	if(!isValidLikeHeader(fullAcceptEncoding)) { return { ...state, type: 'error', cause: 'improper header (accept encoding)' }}
 	if(!isValidLikeHeader(fullAcceptLanguage)) { return { ...state, type: 'error', cause: 'improper header (accept language)' }}
+	if(!isValidLikeHeader(fullAccessControlRequestMethod)) { return { ...state, type: 'error', cause: 'improper header (access control request method)' }}
+	if(!isValidLikeHeader(fullAccessControlRequestHeaders)) { return { ...state, type: 'error', cause: 'improper header (access control request header)' }}
 	if(!isValidLikeHeader(authorization)) { return { ...state, type: 'error', cause: 'improper header (authorization)' }}
 	if(!isValidLikeHeader(maxForwards)) { return { ...state, type: 'error', cause: 'improper header (max forwards)' } }
 	if(!isValidLikeHeader(conditionIfMatch)) { return { ...state, type: 'error', cause: 'improper header (if match)' } }
@@ -228,6 +237,12 @@ export  function preamble(preState, headers, options) {
 		range: Conditional.parseFixDate(conditionIfRange) ?? ETag.parse(conditionIfRange)
 	}
 
+	/** @type {AccessControlRequest} */
+	const accessControlRequest = {
+		method: AccessControlRequestMethod.parse(fullAccessControlRequestMethod),
+		headers: AccessControlRequestHeaders.parse(fullAccessControlRequestHeaders)
+	}
+
 	//
 	// Forwarded
 	//
@@ -239,22 +254,6 @@ export  function preamble(preState, headers, options) {
 	if(FORWARDED_REQUIRED && forwarded === undefined) { return { ...state, type: 'error', cause: 'forwarded required' } }
 	if(FORWARDED_REQUIRED && forwardedFor === undefined) { return { ...state, type: 'error', cause: 'forwarded for required' } }
 	if(FORWARDED_REQUIRED && forwardedSecret !== FORWARDED_SECRET) { return { ...state, type: 'error', cause: 'forwarded invalid' } }
-
-	//
-	// Options
-	//
-	if(method === HTTP2_METHOD_OPTIONS) {
-		const preambleEnd = performance.now()
-		state.meta.performance.push({ name: 'preamble-preflight', duration: preambleEnd - preambleStart })
-		return {
-			...state,
-			type: 'preflight',
-			method,
-			methods: [],
-			supportedTypes: [],
-			url: requestUrl
-		}
-	}
 
 	//
 	// rate limit
@@ -321,11 +320,6 @@ export  function preamble(preState, headers, options) {
 	})
 
 	//
-	// token
-	//
-	// const tokens = getTokens(authorization, requestUrl.searchParams)
-
-	//
 	const preambleEnd = performance.now()
 	state.meta.performance.push({ name: 'preamble', duration: preambleEnd - preambleStart })
 
@@ -336,11 +330,11 @@ export  function preamble(preState, headers, options) {
 		url: requestUrl,
 		headers,
 		body,
-		// tokens,
 		conditions,
 		secFetchMetadata,
 		accept: acceptObject,
 		client: { family, ip, port },
-		SNI
+		SNI,
+		accessControlRequest
 	}
 }

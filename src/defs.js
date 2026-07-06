@@ -16,13 +16,15 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  RateLimitPolicyInfo,
  RateLimitInfo,
  ChallengeItem,
- CacheControlOptions
+ CacheControlOptions,
 } from '@johntalton/http-util/headers' */
 /** @import { AcceptStyleItem } from '@johntalton/http-util/util' */
-/** @import { SendBody, NonEmptyArray, SendSupportedTypes } from '@johntalton/http-util/response' */
-/** @import { SecFetchSite, SecFetchMode, SecFetchDest } from '@johntalton/http-util/headers' */
-
-
+/** @import { SendBody, SendContext, NonEmptyArray, SendSupportedTypes } from '@johntalton/http-util/response' */
+/** @import {
+	SecFetchSite,
+	SecFetchMode,
+	SecFetchDest
+} from '@johntalton/http-util/headers' */
 
 /** @typedef {(state: RouteRequest|RouteAction) => Promise<RouteAction>} Router */
 
@@ -136,6 +138,12 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  */
 
 /**
+ * @typedef {Object} AccessControlRequest
+ * @property {string|undefined} method
+ * @property {Array<string>|undefined} headers
+ */
+
+/**
  * @typedef {Object} RouteRequestBase
  * @property {'request'} type
  * @property {RouteMethod} method
@@ -146,6 +154,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {RouteRemoteClient} client
  * @property {RouteConditions} conditions
  * @property {SecFetchMetadata} secFetchMetadata
+ * @property {AccessControlRequest} accessControlRequest
  * @property {string} SNI
  */
 /** @typedef {RouteBase & RouteRequestBase} RouteRequest */
@@ -158,8 +167,12 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
 
 
 
+/**
+ * @typedef {Object} RouteResponseBase
+ * @property {SendContext|undefined} [context]
+ */
 
-
+/** @typedef {RouteBase & RouteResponseBase} RouteResponse */
 
 /**
  * @typedef {Object} RouteTraceBase
@@ -169,7 +182,14 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {IncomingHttpHeaders} headers
  * @property {number} maxForwards
 */
-/** @typedef {RouteBase & RouteTraceBase} RouteTrace */
+/** @typedef {RouteResponse & RouteTraceBase} RouteTrace */
+
+/**
+ * @typedef {Object} RouteAcceptedBase
+ * @property {'accepted'} type
+ * @property {URL|string|undefined} [location]
+ */
+/** @typedef {RouteResponse & RouteAcceptedBase} RouteAccepted */
 
 /**
  * @typedef {Object} RouteCreatedBase
@@ -178,18 +198,17 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {EtagItem|undefined} [etag]
  * @property {IMFFixDateInput|string|undefined} [lastModified]
  */
-/** @typedef {RouteBase & RouteCreatedBase} RouteCreated */
+/** @typedef {RouteResponse & RouteCreatedBase} RouteCreated */
 
 /**
  * @typedef {Object} RoutePreflightBase
  * @property {'preflight'} type
- * @property {RouteMethod} method verb used in request
  * @property {URL} url
  * @property {Array<RouteMethod>} methods list of methods supported by this route
  * @property {SendSupportedTypes} supportedTypes mime-types supported for post/put/patch
  * @property {Array<string>|undefined} [supportedQueryTypes] mime-types supported for query
  */
-/** @typedef {RouteBase & RoutePreflightBase} RoutePreflight */
+/** @typedef {RouteResponse & RoutePreflightBase} RoutePreflight */
 
 /**
  * @typedef {Object} RouteNoContentBase
@@ -197,7 +216,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {EtagItem|undefined} [etag]
  * @property {IMFFixDateInput|string|undefined} [lastModified]
  */
-/** @typedef {RouteBase & RouteNoContentBase} RouteNoContent */
+/** @typedef {RouteResponse & RouteNoContentBase} RouteNoContent */
 
 /**
  * @typedef {Object} RouteNotModifiedBase
@@ -208,14 +227,14 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {number|undefined} [age]
  * @property {CacheControlOptions|undefined} [cacheControl]
  */
-/** @typedef {RouteBase & RouteNotModifiedBase} RouteNotModified */
+/** @typedef {RouteResponse & RouteNotModifiedBase} RouteNotModified */
 
 /**
  * @typedef {Object} RouteFoundBase
  * @property {'found'} type
  * @property {URL|string} location
  */
-/** @typedef {RouteBase & RouteFoundBase} RouteFound */
+/** @typedef {RouteResponse & RouteFoundBase} RouteFound */
 
 
 
@@ -223,35 +242,35 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @typedef {Object} RouteGoneBase
  * @property {'gone'} type
  */
-/** @typedef {RouteBase & RouteGoneBase} RouteGone */
+/** @typedef {RouteResponse & RouteGoneBase} RouteGone */
 
 /**
  * @typedef {Object} RouteMovedPermanentlyBase
  * @property {'moved-permanently'} type
  * @property {URL|string} location
  */
-/** @typedef {RouteBase & RouteMovedPermanentlyBase} RouteMovedPermanently */
+/** @typedef {RouteResponse & RouteMovedPermanentlyBase} RouteMovedPermanently */
 
 /**
  * @typedef {Object} RouteSeeOtherBase
  * @property {'see-other'} type
  * @property {URL|string} location
  */
-/** @typedef {RouteBase & RouteSeeOtherBase} RouteSeeOther */
+/** @typedef {RouteResponse & RouteSeeOtherBase} RouteSeeOther */
 
 /**
  * @typedef {Object} RouteTemporaryRedirectBase
  * @property {'temporary-redirect'} type
  * @property {URL|string} location
  */
-/** @typedef {RouteBase & RouteTemporaryRedirectBase} RouteTemporaryRedirect */
+/** @typedef {RouteResponse & RouteTemporaryRedirectBase} RouteTemporaryRedirect */
 
 /**
  * @typedef {Object} RoutePermanentRedirectBase
  * @property {'permanent-redirect'} type
  * @property {URL|string} location
  */
-/** @typedef {RouteBase & RoutePermanentRedirectBase} RoutePermanentRedirect */
+/** @typedef {RouteResponse & RoutePermanentRedirectBase} RoutePermanentRedirect */
 
 
 
@@ -262,7 +281,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {string} method
  * @property {string} message
  */
-/** @typedef {RouteBase & Route404Base} Route404 */
+/** @typedef {RouteResponse & Route404Base} Route404 */
 
 
 /**
@@ -270,26 +289,26 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {'bad-request'} type
  * @property {string|undefined} message
  */
-/** @typedef {RouteBase & RouteBadRequestBase} RouteBadRequest */
+/** @typedef {RouteResponse & RouteBadRequestBase} RouteBadRequest */
 
 /**
  * @typedef {Object} RouteConflictBase
  * @property {'conflict'} type
  * @property {string|undefined} [message]
  */
-/** @typedef {RouteBase & RouteConflictBase} RouteConflict */
+/** @typedef {RouteResponse & RouteConflictBase} RouteConflict */
 
 /**
  * @typedef {Object} RouteContentTooLargeBase
  * @property {'content-too-large'} type
  */
-/** @typedef {RouteBase & RouteContentTooLargeBase} RouteContentTooLarge */
+/** @typedef {RouteResponse & RouteContentTooLargeBase} RouteContentTooLarge */
 
 /**
  * @typedef {Object} RouteForbiddenBase
  * @property {'forbidden'} type
  */
-/** @typedef {RouteBase & RouteForbiddenBase} RouteForbidden */
+/** @typedef {RouteResponse & RouteForbiddenBase} RouteForbidden */
 
 /**
  * @typedef {Object} RouteNotAcceptableBase
@@ -298,7 +317,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {Array<string>|undefined} [acceptableEncodings]
  * @property {Array<string>|undefined} [acceptableLanguages]
  */
-/** @typedef {RouteBase & RouteNotAcceptableBase} RouteNotAcceptable */
+/** @typedef {RouteResponse & RouteNotAcceptableBase} RouteNotAcceptable */
 
 /**
  * @typedef {Object} RouteNotAllowedBase
@@ -306,7 +325,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {RouteMethod} method
  * @property {Array<RouteMethod>} methods
  */
-/** @typedef {RouteBase & RouteNotAllowedBase} RouteNotAllowed */
+/** @typedef {RouteResponse & RouteNotAllowedBase} RouteNotAllowed */
 
 /**
  * @typedef {Object} RoutePreconditionFailedBase
@@ -314,20 +333,20 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {EtagItem|undefined} [etag]
  * @property {IMFFixDateInput|string|undefined} [lastModified]
  */
-/** @typedef {RouteBase & RoutePreconditionFailedBase} RoutePreconditionFailed */
+/** @typedef {RouteResponse & RoutePreconditionFailedBase} RoutePreconditionFailed */
 
 /**
  * @typedef {Object} RouteNotSatisfiableBase
  * @property {'not-satisfiable'} type
  * @property {number} contentLength
  */
-/** @typedef {RouteBase & RouteNotSatisfiableBase} RouteNotSatisfiable */
+/** @typedef {RouteResponse & RouteNotSatisfiableBase} RouteNotSatisfiable */
 
 /**
  * @typedef {Object} RouteTimeoutBase
  * @property {'timeout'} type
  */
-/** @typedef {RouteBase & RouteTimeoutBase} RouteTimeout */
+/** @typedef {RouteResponse & RouteTimeoutBase} RouteTimeout */
 
 /**
  * @typedef {Object} RouteTooManyRequestsBase
@@ -335,20 +354,20 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {RateLimitInfo} limit
  * @property {Array<RateLimitPolicyInfo>} policies
  */
-/** @typedef {RouteBase & RouteTooManyRequestsBase} RouteTooManyRequests */
+/** @typedef {RouteResponse & RouteTooManyRequestsBase} RouteTooManyRequests */
 
 /**
  * @typedef {Object} RouteUnauthorizedBase
  * @property {'unauthorized'} type
  * @property {Array<ChallengeItem>} challenge
  */
-/** @typedef {RouteBase & RouteUnauthorizedBase} RouteUnauthorized */
+/** @typedef {RouteResponse & RouteUnauthorizedBase} RouteUnauthorized */
 
 /**
  * @typedef {Object} RouteUnprocessableBase
  * @property {'unprocessable'} type
  */
-/** @typedef {RouteBase & RouteUnprocessableBase} RouteUnprocessable */
+/** @typedef {RouteResponse & RouteUnprocessableBase} RouteUnprocessable */
 
 /**
  * @typedef {Object} RouteUnsupportedMediaTypeBase
@@ -357,20 +376,20 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {SendSupportedTypes} supportedTypes
  * @property {Array<string>|undefined} [supportedQueryTypes]
  */
-/** @typedef {RouteBase & RouteUnsupportedMediaTypeBase} RouteUnsupportedMediaType */
+/** @typedef {RouteResponse & RouteUnsupportedMediaTypeBase} RouteUnsupportedMediaType */
 
 /**
  * @typedef {Object} RouteInsufficientStorageBase
  * @property {'insufficient-storage'} type
  */
-/** @typedef {RouteBase & RouteInsufficientStorageBase} RouteInsufficientStorage */
+/** @typedef {RouteResponse & RouteInsufficientStorageBase} RouteInsufficientStorage */
 
 /**
  * @typedef {Object} RouteNotImplementedBase
  * @property {'not-implemented'} type
  * @property {string|undefined} [message]
  */
-/** @typedef {RouteBase & RouteNotImplementedBase} RouteNotImplemented */
+/** @typedef {RouteResponse & RouteNotImplementedBase} RouteNotImplemented */
 
 /**
  * @typedef {Object} RouteUnavailableBase
@@ -378,7 +397,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {string|undefined} [message]
  * @property {number|undefined} [retryAfter]
  */
-/** @typedef {RouteBase & RouteUnavailableBase} RouteUnavailable */
+/** @typedef {RouteResponse & RouteUnavailableBase} RouteUnavailable */
 
 
 
@@ -389,7 +408,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {boolean} bom
  * @property {MessagePort} port
  */
-/** @typedef {RouteBase & RouteSSEBase} RouteSSE */
+/** @typedef {RouteResponse & RouteSSEBase} RouteSSE */
 
 /**
  * @typedef {Object} RouteBytesBase
@@ -403,7 +422,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {CacheControlOptions|undefined} [cacheControl]
  * @property {'bytes'|'none'|undefined} [acceptRanges]
  */
-/** @typedef {RouteBase & RouteBytesBase} RouteBytes */
+/** @typedef {RouteResponse & RouteBytesBase} RouteBytes */
 
  /**
  * @typedef {Object} RoutePartialBytesBase
@@ -416,7 +435,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {number|undefined} [age]
  * @property {CacheControlOptions|undefined} [cacheControl]
  */
-/** @typedef {RouteBase & RoutePartialBytesBase} RoutePartialBytes */
+/** @typedef {RouteResponse & RoutePartialBytesBase} RoutePartialBytes */
 
 /**
  * @typedef {Object} RouteEncodedBase
@@ -430,7 +449,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {CacheControlOptions|undefined} [cacheControl]
  * @property {Array<string>|undefined} [supportedQueryTypes]
  */
-/** @typedef {RouteBase & RouteEncodedBase} RouteEncoded */
+/** @typedef {RouteResponse & RouteEncodedBase} RouteEncoded */
 
 /**
  * @typedef {Object} RouteJSONBase
@@ -443,7 +462,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {CacheControlOptions|undefined} [cacheControl]
  * @property {Array<string>|undefined} [supportedQueryTypes]
  */
-/** @typedef {RouteBase & RouteJSONBase} RouteJSON */
+/** @typedef {RouteResponse & RouteJSONBase} RouteJSON */
 
 /**
  * @typedef {Object} RouteErrorBase
@@ -451,11 +470,12 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {string} cause
  * @property {Error|undefined} [error]
  */
-/** @typedef {RouteBase & RouteErrorBase } RouteError */
+/** @typedef {RouteResponse & RouteErrorBase } RouteError */
 
 
 /** @typedef {
 	RouteTrace |
+	RouteAccepted |
 	RouteCreated |
 	RoutePreflight |
 	RouteNoContent |
