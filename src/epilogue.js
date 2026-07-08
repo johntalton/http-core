@@ -167,7 +167,7 @@ export function epilogue(state) {
 		case 'error': {
 			const { cause, error } = state
 			console.log('send error', state.streamId, cause)
-			if(error !== undefined) { console.log(error) }
+			if(error !== undefined) { console.log('send error (error)', error) }
 			Response.error(stream, cause, state.context ?? {}, meta)
 		} break
 

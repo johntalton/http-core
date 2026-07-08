@@ -524,6 +524,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {Array<string>} allowedOrigins
  * @property {boolean} allowTrace
  * @property {string|undefined} serverName
+ * @property {boolean} debug
  */
 
 

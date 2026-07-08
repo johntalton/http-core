@@ -86,7 +86,8 @@ export class H2CoreServer {
 			credentials: h2Options?.credentials ?? [],
 			allowedOrigins: h2Options?.allowedOrigins ?? [],
 			allowTrace: h2Options?.allowTrace ?? false,
-			serverName: h2Options?.serverName
+			serverName: h2Options?.serverName,
+			debug: h2Options?.debug ?? false
 		}
 
 		/** @type {SecureServerOptions} */
@@ -117,8 +118,8 @@ export class H2CoreServer {
 		// server.on('request', (req, res) => res.end('hello'))
 		server.on('drop', data => console.log('Drop', data))
 		server.on('connection', socket => {
-			console.log('new connection', socket.remoteAddress, socket.remotePort)
-			socket.on('close', hasError => console.log('closing socket with hasError:', hasError))
+			if(this.#h2Options.debug) { console.log('new connection', socket.remoteAddress, socket.remotePort) }
+			socket.on('close', hasError => { if(this.#h2Options.debug) { console.log('closing socket with hasError:', hasError) } })
 		})
 		// server.on('secureConnection', socket => console.log('new secure connection'))
 		// server.on('keylog', (data) => console.log('key log', data))
@@ -131,7 +132,7 @@ export class H2CoreServer {
 			}
 
 			// console.log('socket destroyed?', socket.destroyed)
-			console.log('TLS Error', error)
+			if(this.#h2Options.debug) { console.log('TLS Error', error) }
 		})
 		server.on('error', error => console.log('Server Error', error))
 		server.on('sessionError', error => { console.log('session error', error) })
@@ -140,24 +141,24 @@ export class H2CoreServer {
 		server.on('session', session => {
 			const sessionId = uniqueId()
 
-			console.log('new session', session.socket.remoteAddress, sessionId)
+			if(this.#h2Options.debug) { console.log('new session', session.socket.remoteAddress, sessionId) }
 
-			session.on('close', () => console.log('session close', sessionId))
-			session.on('error', () => console.log('session error', sessionId))
-			session.on('frameError', () => console.log('session frameError', sessionId))
+			session.on('close', () => { if(this.#h2Options.debug) { console.log('session close', sessionId) } })
+			session.on('error', () => { if(this.#h2Options.debug) { console.log('session error', sessionId) } })
+			session.on('frameError', () => { if(this.#h2Options.debug) { console.log('session frameError', sessionId) } })
 			session.on('goaway', () => console.log('session goAway', sessionId))
 			session.on('stream', (stream, headers) => {
 				const streamId = uniqueStreamId(sessionId, stream.id)
 
-				console.log('new stream', streamId)
+				if(this.#h2Options.debug) { console.log('new stream', streamId) }
 
-				stream.on('aborted', () => console.log('stream aborted', streamId))
+				stream.on('aborted', () => { if(this.#h2Options.debug) { console.log('stream aborted', streamId) } })
 				stream.on('close', () => {
 					// if(stream.rstCode !== http2.constants.NGHTTP2_NO_ERROR) {
-						console.log('stream close', streamId, closeCodeToString(stream.rstCode))
+						if(this.#h2Options.debug) { console.log('stream close', streamId, closeCodeToString(stream.rstCode)) }
 					// }
 				})
-				stream.on('error', error => console.log('stream error', streamId, error.message))
+				stream.on('error', error => { if(this.#h2Options.debug) { console.log('stream error', streamId, error.message) } })
 				stream.on('frameError', (type, code, id) => console.log('stream frameError', streamId, type, code, id))
 
 				// tickle the type
