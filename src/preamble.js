@@ -25,6 +25,7 @@ import {
 	MIME_TYPE_MESSAGE_HTTP,
 	MIME_TYPE_TEXT,
 	MIME_TYPE_XML,
+	Preferences,
 	SecFetch
 } from '@johntalton/http-util/headers'
 import {
@@ -39,6 +40,7 @@ import {
 import { isValidHeader, isValidLikeHeader, isValidMethod, resolveAllowedOrigin } from './defs.js'
 
 /** @import { IncomingHttpHeaders } from 'node:http2' */
+/** @import { RequestPreferences } from '@johntalton/http-util/headers' */
 /** @import { H2CoreOptions, RouteRequest, AccessControlRequest, RouteTrace, RouteNotAllowed, RouteNotImplemented, RouteNotAcceptable, RouteUnavailable, RouteError, RouteConditions, SecFetchMetadata, RouteRequestAccept } from './defs.js' */
 
 const {
@@ -69,7 +71,8 @@ const {
 	HTTP2_HEADER_MAX_FORWARDS,
 	// HTTP2_HEADER_FROM
 	HTTP2_HEADER_ACCESS_CONTROL_REQUEST_METHOD,
-	HTTP2_HEADER_ACCESS_CONTROL_REQUEST_HEADERS
+	HTTP2_HEADER_ACCESS_CONTROL_REQUEST_HEADERS,
+	HTTP2_HEADER_PREFER
 } = http2.constants
 
 const DEFAULT_SUPPORTED_LANGUAGES = [ 'en-US', 'en' ]
@@ -149,6 +152,9 @@ export  function preamble(preState, headers, options) {
 	const fullAccessControlRequestHeaders = headers[HTTP2_HEADER_ACCESS_CONTROL_REQUEST_HEADERS]
 	const fullAccessControlRequestMethod = headers[HTTP2_HEADER_ACCESS_CONTROL_REQUEST_METHOD]
 
+	//
+	const fullPreferences = headers[HTTP2_HEADER_PREFER]
+
 	// Conditions
 	const conditionIfMatch = headers[HTTP2_HEADER_IF_MATCH]
 	const conditionIfNoneMatch = headers[HTTP2_HEADER_IF_NONE_MATCH]
@@ -207,6 +213,7 @@ export  function preamble(preState, headers, options) {
 	if(!isValidLikeHeader(fullAcceptLanguage)) { return { ...state, type: 'error', cause: 'improper header (accept language)' }}
 	if(!isValidLikeHeader(fullAccessControlRequestMethod)) { return { ...state, type: 'error', cause: 'improper header (access control request method)' }}
 	if(!isValidLikeHeader(fullAccessControlRequestHeaders)) { return { ...state, type: 'error', cause: 'improper header (access control request header)' }}
+	if(!isValidLikeHeader(fullPreferences)) { return { ...state, type: 'error', cause: 'improper header (prefer)' }}
 	if(!isValidLikeHeader(authorization)) { return { ...state, type: 'error', cause: 'improper header (authorization)' }}
 	if(!isValidLikeHeader(maxForwards)) { return { ...state, type: 'error', cause: 'improper header (max forwards)' } }
 	if(!isValidLikeHeader(conditionIfMatch)) { return { ...state, type: 'error', cause: 'improper header (if match)' } }
@@ -242,6 +249,9 @@ export  function preamble(preState, headers, options) {
 		method: AccessControlRequestMethod.parse(fullAccessControlRequestMethod),
 		headers: AccessControlRequestHeaders.parse(fullAccessControlRequestHeaders)
 	}
+
+	/** @type {RequestPreferences} */
+	const preferences = Preferences.parse(fullPreferences) ?? { preferences: new Map() }
 
 	//
 	// Forwarded
@@ -332,6 +342,7 @@ export  function preamble(preState, headers, options) {
 		body,
 		conditions,
 		secFetchMetadata,
+		preferences,
 		accept: acceptObject,
 		client: { family, ip, port },
 		SNI,

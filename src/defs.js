@@ -17,6 +17,8 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  RateLimitInfo,
  ChallengeItem,
  CacheControlOptions,
+ RequestPreferences,
+ DispositionInput
 } from '@johntalton/http-util/headers' */
 /** @import { AcceptStyleItem } from '@johntalton/http-util/util' */
 /** @import { SendBody, SendContext, NonEmptyArray, SendSupportedTypes } from '@johntalton/http-util/response' */
@@ -154,6 +156,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {RouteRemoteClient} client
  * @property {RouteConditions} conditions
  * @property {SecFetchMetadata} secFetchMetadata
+ * @property {RequestPreferences} preferences
  * @property {AccessControlRequest} accessControlRequest
  * @property {string} SNI
  */
@@ -415,6 +418,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {'bytes'} type
  * @property {string} contentType
  * @property {SendBody|undefined} obj
+ * @property {DispositionInput} [contentDisposition]
  * @property {number|undefined} [contentLength]
  * @property {IMFFixDateInput|string|undefined} [lastModified]
  * @property {EtagItem|undefined} [etag]
@@ -429,6 +433,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {'partial-bytes'} type
  * @property {NonEmptyArray<PartialBytes>} objs
  * @property {string} contentType
+ * @property {DispositionInput} [contentDisposition]
  * @property {number|undefined} [contentLength]
  * @property {EtagItem|undefined} [etag]
  * @property {IMFFixDateInput|string|undefined} [lastModified]
@@ -443,6 +448,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {SendBody|undefined} obj
  * @property {string} contentType
  * @property {string|undefined} [encoding]
+ * @property {DispositionInput} [contentDisposition]
  * @property {EtagItem|undefined} [etag]
  * @property {IMFFixDateInput|string|undefined} [lastModified]
  * @property {number|undefined} [age]
@@ -456,6 +462,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {'json'} type
  * @property {Record<any, any>} obj
  * @property {string | undefined} [encoding]
+ * @property {DispositionInput} [contentDisposition]
  * @property {IMFFixDateInput|string|undefined} [lastModified]
  * @property {EtagItem|undefined} [etag]
  * @property {number|undefined} [age]

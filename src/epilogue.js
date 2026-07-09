@@ -97,9 +97,9 @@ export function epilogue(state) {
 			if(active) { addSSEPortHandler(stream, port, state.streamId, state.shutdownSignal) }
 		} break
 		case 'json': {
-			const { obj, encoding, etag, lastModified, age, supportedQueryTypes } = state
+			const { obj, contentDisposition, encoding, etag, lastModified, age, supportedQueryTypes } = state
 			Response.json(stream, obj, {
-				contentDisposition: undefined,
+				contentDisposition,
 				encoding,
 				etag,
 				lastModified,
@@ -113,10 +113,10 @@ export function epilogue(state) {
 				meta)
 		} break
 		case 'encoded': {
-			const { contentType, encoding, etag, lastModified, age, supportedQueryTypes } = state
+			const { contentType, contentDisposition, encoding, etag, lastModified, age, supportedQueryTypes } = state
 
 			Response.encoded(stream, state.obj, {
-				contentDisposition: undefined,
+				contentDisposition,
 				contentType,
 				encoding,
 				etag,
@@ -130,10 +130,10 @@ export function epilogue(state) {
 			meta)
 		} break
 		case 'partial-bytes': {
-			const { contentType, contentLength, etag, lastModified, age } = state
+			const { contentType, contentDisposition, contentLength, etag, lastModified, age } = state
 
 			Response.partialContent(stream, state.objs, {
-				contentDisposition: undefined,
+				contentDisposition,
 				contentType,
 				contentLength,
 				encoding: undefined,
@@ -146,10 +146,10 @@ export function epilogue(state) {
 			meta)
 		} break
 		case 'bytes': {
-			const { contentType, contentLength, etag, lastModified, age, acceptRanges } = state
+			const { contentType, contentDisposition, contentLength, etag, lastModified, age, acceptRanges } = state
 
 			Response.bytes(stream, state.obj, {
-				contentDisposition: undefined,
+				contentDisposition,
 				contentType,
 				contentLength,
 				etag,
