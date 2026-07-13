@@ -41,7 +41,7 @@ import { isValidHeader, isValidLikeHeader, isValidMethod, resolveAllowedOrigin }
 
 /** @import { IncomingHttpHeaders } from 'node:http2' */
 /** @import { RequestPreferences } from '@johntalton/http-util/headers' */
-/** @import { H2CoreOptions, RouteRequest, AccessControlRequest, RouteTrace, RouteNotAllowed, RouteNotImplemented, RouteNotAcceptable, RouteUnavailable, RouteError, RouteConditions, SecFetchMetadata, RouteRequestAccept } from './defs.js' */
+/** @import { H2CoreOptions, PreState, PreambleRouteResult, AccessControlRequest, RouteConditions, SecFetchMetadata, RouteRequestAccept } from './defs.js' */
 
 const {
 	HTTP2_METHOD_TRACE
@@ -104,11 +104,6 @@ const BODY_BYTE_LENGTH = BYTE_PER_K * BYTE_PER_K
 // 	size: 50,
 // 	quotaUnits: 1
 // }
-
-
-/** @typedef {Pick<RouteRequest, 'config'|'streamId'|'stream'|'shutdownSignal'>} PreState */
-
-/** @typedef {RouteRequest | RouteTrace | RouteNotAllowed | RouteNotImplemented | RouteNotAcceptable | RouteUnavailable | RouteError } PreambleRouteResult */
 
 /**
  * @param {PreState} preState

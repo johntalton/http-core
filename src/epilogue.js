@@ -104,8 +104,7 @@ export function epilogue(state) {
 				etag,
 				lastModified,
 				age,
-				cacheControl:
-				state.cacheControl ?? {}
+				cacheControl: state.cacheControl ?? {}
 			}, {
 					supportedQueryTypes
 				},

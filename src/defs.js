@@ -28,8 +28,6 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
 	SecFetchDest
 } from '@johntalton/http-util/headers' */
 
-/** @typedef {(state: RouteRequest|RouteAction) => Promise<RouteAction>} Router */
-
 /** @typedef {'request'} RouteTypeRequest */
 /** @typedef {
 	'trace' |
@@ -520,6 +518,12 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
 	RouteJSON |
 	RouteError
 } RouteAction */
+
+/** @typedef {Pick<RouteRequest, 'config'|'streamId'|'stream'|'shutdownSignal'>} PreState */
+
+/** @typedef {RouteRequest | RouteTrace | RouteNotAllowed | RouteNotImplemented | RouteNotAcceptable | RouteUnavailable | RouteError } PreambleRouteResult */
+
+/** @typedef {(state: PreambleRouteResult) => Promise<RouteAction>} Router */
 
 /**
  * @typedef {Object} H2CoreOptions
