@@ -41,7 +41,7 @@ import { isValidHeader, isValidLikeHeader, isValidMethod, resolveAllowedOrigin }
 
 /** @import { IncomingHttpHeaders } from 'node:http2' */
 /** @import { RequestPreferences } from '@johntalton/http-util/headers' */
-/** @import { H2CoreOptions, PreState, PreambleRouteResult, AccessControlRequest, RouteConditions, SecFetchMetadata, RouteRequestAccept } from './defs.js' */
+/** @import { Config, H2CoreOptions, PreState, PreambleRouteResult, AccessControlRequest, RouteConditions, SecFetchMetadata, RouteRequestAccept } from './defs.js' */
 
 const {
 	HTTP2_METHOD_TRACE
@@ -106,10 +106,11 @@ const BODY_BYTE_LENGTH = BYTE_PER_K * BYTE_PER_K
 // }
 
 /**
- * @param {PreState} preState
+ * @template {Config} C
+ * @param {PreState<C>} preState
  * @param {IncomingHttpHeaders} headers
  * @param {H2CoreOptions} options
- * @returns {PreambleRouteResult}
+ * @returns {PreambleRouteResult<C>}
  */
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: work horse
@@ -169,7 +170,7 @@ export  function preamble(preState, headers, options) {
 	//
 	const allowedOrigin = resolveAllowedOrigin(origin, options.allowedOrigins)
 
-	/** @type {PreambleRouteResult} */
+	/** @type {PreambleRouteResult<C>} */
 	const state = {
 		type: 'error',
 		cause: 'initialize',

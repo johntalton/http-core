@@ -7,7 +7,7 @@ import { epilogue } from './epilogue.js'
 import { preamble } from './preamble.js'
 
 /** @import { SecureServerOptions } from 'node:http2' */
-/** @import { H2CoreOptions, Router, StreamID } from './defs.js' */
+/** @import { Config, H2CoreOptions, Router, StreamID } from './defs.js' */
 
 const {
 	SSL_OP_NO_TLSv1,
@@ -66,6 +66,9 @@ export function uniqueId() {
 	return crypto.getRandomValues(new Uint8Array(UNIQUE_ID_SIZE)).toHex()
 }
 
+/**
+ * @template {Config} C
+ */
 export class H2CoreServer {
 	#server
 	#controller
@@ -73,13 +76,18 @@ export class H2CoreServer {
 	/** @type {H2CoreOptions} */
 	#h2Options
 
+	/** @type {C} */
+	#config
+
 	/**
-	 * @param {Router} router
+	 * @param {Router<C>} router
+	 * @param {C} config
 	 * @param {Partial<H2CoreOptions>|undefined} [h2Options]
 	 */
-	constructor(router, h2Options) {
+	constructor(router, config, h2Options) {
+		this.#config = config
+
 		this.#h2Options = {
-			config: h2Options?.config ?? {},
 			ipv6Only: h2Options?.ipv6Only ?? true,
 			host: h2Options?.host ?? '',
 			port: h2Options?.port ?? 0,
@@ -166,7 +174,7 @@ export class H2CoreServer {
 
 				// const start = performance.now()
 				const state = preamble({
-						config: this.#h2Options.config,
+						config: this.#config,
 						streamId,
 						stream,
 						shutdownSignal: this.#controller.signal
