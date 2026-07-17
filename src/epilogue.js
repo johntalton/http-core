@@ -2,7 +2,7 @@ import { Response } from '@johntalton/http-util/response/object'
 import { ServerSentEvents } from '@johntalton/sse-util'
 
 /** @import { ServerHttp2Stream } from 'node:http2' */
-/** @import { RouteAction, StreamID } from './defs.js' */
+/** @import { Config, RouteAction, StreamID } from './defs.js' */
 
 /**
  * @param {ServerHttp2Stream} stream
@@ -41,7 +41,8 @@ function addSSEPortHandler(stream, port, streamId, shutdownSignal) {
 }
 
 /**
- * @param {RouteAction} state
+ * @template {Config} C
+ * @param {RouteAction<C>} state
  */
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: work horse
 export function epilogue(state) {
@@ -56,7 +57,7 @@ export function epilogue(state) {
 		//
 		case 'accepted': { Response.accepted(stream, state.location, state.context ?? {}, meta) } break
 		case 'created': { Response.created(stream, new URL(state.location, meta.origin), { etag: state.etag, lastModified: state.lastModified }, state.context ?? {}, meta) } break
-		case 'preflight': { Response.preflight(stream, { supportedTypes: state.supportedTypes, supportedMethods: state.methods, supportedQueryTypes: state.supportedQueryTypes, acceptRanges: undefined }, state.context ?? {}, meta) } break
+		case 'preflight': { Response.preflight(stream, { supportedTypes: state.supportedTypes, supportedMethods: state.methods, supportedHeaders: state.supportedHeaders, supportedQueryTypes: state.supportedQueryTypes, acceptRanges: undefined }, state.context ?? {}, meta) } break
 		case 'no-content': { Response.noContent(stream, { etag: state.etag, lastModified: state.lastModified }, state.context ?? {}, meta) } break
 		case 'not-modified': { Response.notModified(stream, { etag: state.etag, lastModified: state.lastModified, age: state.age, cacheControl: state.cacheControl ?? {} }, state.context ?? {}, meta) } break
 		case 'found': { Response.found(stream, state.location, state.context ?? {}, meta) } break
