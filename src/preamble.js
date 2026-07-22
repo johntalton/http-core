@@ -37,6 +37,7 @@ import {
 	HTTP_HEADER_SEC_FETCH_SITE,
 	HTTP_HEADER_SEC_FETCH_USER
 } from '@johntalton/http-util/response'
+import { InternetMessageFormatFixDate } from '@johntalton/http-util/util'
 import { isValidHeader, isValidLikeHeader, isValidMethod, resolveAllowedOrigin } from './defs.js'
 
 /** @import { IncomingHttpHeaders } from 'node:http2' */
@@ -235,9 +236,9 @@ export  function preamble(preState, headers, options) {
 	const conditions = {
 		match: Conditional.parseEtagList(conditionIfMatch),
 		noneMatch: Conditional.parseEtagList(conditionIfNoneMatch),
-		modifiedSince: Conditional.parseFixDate(conditionIfModifiedSince),
-		unmodifiedSince: Conditional.parseFixDate(conditionIfUnmodifiedSince),
-		range: Conditional.parseFixDate(conditionIfRange) ?? ETag.parse(conditionIfRange)
+		modifiedSince: InternetMessageFormatFixDate.parse(conditionIfModifiedSince),
+		unmodifiedSince: InternetMessageFormatFixDate.parse(conditionIfUnmodifiedSince),
+		range: InternetMessageFormatFixDate.parse(conditionIfRange) ?? ETag.parse(conditionIfRange)
 	}
 
 	/** @type {AccessControlRequest} */

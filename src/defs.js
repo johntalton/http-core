@@ -10,8 +10,6 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
 /** @import {
  AcceptItem,
  EtagItem,
- IMFFixDate,
- IMFFixDateInput,
  ContentRangeDirective,
  RateLimitPolicyInfo,
  RateLimitInfo,
@@ -20,7 +18,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  RequestPreferences,
  DispositionInput
 } from '@johntalton/http-util/headers' */
-/** @import { AcceptStyleItem } from '@johntalton/http-util/util' */
+/** @import { AcceptStyleItem,  IMFFixDate, IMFFixDateInput } from '@johntalton/http-util/util' */
 /** @import { SendBody, SendContext, NonEmptyArray, SendSupportedTypes } from '@johntalton/http-util/response' */
 /** @import {
 	SecFetchSite,
