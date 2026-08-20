@@ -13,6 +13,7 @@ import {
 	AccessControlRequestMethod,
 
 	Conditional,
+	ContentDigest,
 	ContentType,
 	ETag,
 
@@ -26,23 +27,37 @@ import {
 	MIME_TYPE_TEXT,
 	MIME_TYPE_XML,
 	Preferences,
-	SecFetch
+	ReprDigest,
+	SecFetch,
+
+	UnencodedDigest,
+
+	WantContentDigest,
+	WantReprDigest,
+	WantUnencodedDigest
 } from '@johntalton/http-util/headers'
 import {
 	ENCODER_MAP,
+	HTTP_HEADER_CONTENT_DIGEST,
 	HTTP_HEADER_FORWARDED,
 	HTTP_HEADER_ORIGIN,
+	HTTP_HEADER_REPR_DIGEST,
 	HTTP_HEADER_SEC_FETCH_DEST,
 	HTTP_HEADER_SEC_FETCH_MODE,
 	HTTP_HEADER_SEC_FETCH_SITE,
-	HTTP_HEADER_SEC_FETCH_USER
+	HTTP_HEADER_SEC_FETCH_USER,
+	HTTP_HEADER_SERVICE_WORKER,
+	HTTP_HEADER_UNENCODED_DIGEST,
+	HTTP_HEADER_WANT_CONTENT_DIGEST,
+	HTTP_HEADER_WANT_REPR_DIGEST,
+	HTTP_HEADER_WANT_UNENCODED_DIGEST,
 } from '@johntalton/http-util/response'
 import { InternetMessageFormatFixDate } from '@johntalton/http-util/util'
 import { isValidHeader, isValidLikeHeader, isValidMethod, resolveAllowedOrigin } from './defs.js'
 
 /** @import { IncomingHttpHeaders } from 'node:http2' */
 /** @import { RequestPreferences } from '@johntalton/http-util/headers' */
-/** @import { Config, H2CoreOptions, PreState, PreambleRouteResult, AccessControlRequest, RouteConditions, SecFetchMetadata, RouteRequestAccept } from './defs.js' */
+/** @import { Config, H2CoreOptions, PreState, PreambleRouteResult, AccessControlRequest, RouteConditions, SecFetchMetadata, RouteRequestAccept, DigestInfo } from './defs.js' */
 
 const {
 	HTTP2_METHOD_TRACE
@@ -168,6 +183,17 @@ export  function preamble(preState, headers, options) {
 	const secFetchDest = headers[HTTP_HEADER_SEC_FETCH_DEST]
 	const secFetchUser = headers[HTTP_HEADER_SEC_FETCH_USER]
 
+	// Service Worker
+	const serviceWorker = headers[HTTP_HEADER_SERVICE_WORKER]
+
+	// Digest
+	const wantReprDigest = headers[HTTP_HEADER_WANT_REPR_DIGEST]
+	const wantContentDigest = headers[HTTP_HEADER_WANT_CONTENT_DIGEST]
+	const wantUnencodedDigest = headers[HTTP_HEADER_WANT_UNENCODED_DIGEST]
+	const reprDigest = headers[HTTP_HEADER_REPR_DIGEST]
+	const contentDigest = headers[HTTP_HEADER_CONTENT_DIGEST]
+	const unencodedDigest = headers[HTTP_HEADER_UNENCODED_DIGEST]
+
 	//
 	const allowedOrigin = resolveAllowedOrigin(origin, options.allowedOrigins)
 
@@ -218,6 +244,15 @@ export  function preamble(preState, headers, options) {
 	if(!isValidLikeHeader(conditionIfModifiedSince)) { return { ...state, type: 'error', cause: 'improper header (if modified since)' } }
 	if(!isValidLikeHeader(conditionIfUnmodifiedSince)) { return { ...state, type: 'error', cause: 'improper header (if unmodified since)' } }
 	if(!isValidLikeHeader(conditionIfRange)) { return { ...state, type: 'error', cause: 'improper header (if range)' } }
+	if(!isValidLikeHeader(serviceWorker)) { return { ...state, type: 'error', cause: 'improper header (service worker)' }}
+	if(!isValidLikeHeader(wantReprDigest)) { return { ...state, type: 'error', cause: 'improper header (want repr digest)' }}
+	if(!isValidLikeHeader(wantContentDigest)) { return { ...state, type: 'error', cause: 'improper header (want content digest)' }}
+	if(!isValidLikeHeader(wantUnencodedDigest)) { return { ...state, type: 'error', cause: 'improper header (want unencoded digest)' }}
+	if(!isValidLikeHeader(reprDigest)) { return { ...state, type: 'error', cause: 'improper header (repr digest)' }}
+	if(!isValidLikeHeader(contentDigest)) { return { ...state, type: 'error', cause: 'improper header (content digest)' }}
+	if(!isValidLikeHeader(unencodedDigest)) { return { ...state, type: 'error', cause: 'improper header (unencoded digest)' }}
+
+
 
 	//
 	const requestUrl = new URL(fullPathAndQuery, `${scheme}://${authority}`)
@@ -249,6 +284,29 @@ export  function preamble(preState, headers, options) {
 
 	/** @type {RequestPreferences} */
 	const preferences = Preferences.parse(fullPreferences) ?? { preferences: new Map() }
+
+	//
+	const wantRepr = WantReprDigest.parse(wantReprDigest)
+	const wantContent = WantContentDigest.parse(wantContentDigest)
+	const wantUnencoded = WantUnencodedDigest.parse(wantUnencodedDigest)
+	/** @type {DigestInfo} */
+	const digestInfo = {
+		want: {
+			repr: wantRepr,
+			content: wantContent,
+			unencoded: wantUnencoded
+		},
+
+		repr: ReprDigest.parse(reprDigest),
+		content: ContentDigest.parse(contentDigest),
+		unencoded: UnencodedDigest.parse(unencodedDigest),
+
+		select: {
+			repr: supportedAlgorithms => WantReprDigest.selectItemsFrom(wantRepr, supportedAlgorithms),
+			content: supportedAlgorithms => WantContentDigest.selectItemsFrom(wantContent, supportedAlgorithms),
+			unencoded: supportedAlgorithms => WantUnencodedDigest.selectItemsFrom(wantUnencoded, supportedAlgorithms)
+		}
+	}
 
 	//
 	// Forwarded
@@ -343,6 +401,8 @@ export  function preamble(preState, headers, options) {
 		accept: acceptObject,
 		client: { family, ip, port },
 		SNI,
-		accessControlRequest
+		accessControlRequest,
+		serviceWorker,
+		digestInfo
 	}
 }

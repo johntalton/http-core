@@ -98,14 +98,15 @@ export function epilogue(state) {
 			if(active) { addSSEPortHandler(stream, port, state.streamId, state.shutdownSignal) }
 		} break
 		case 'json': {
-			const { obj, contentDisposition, encoding, etag, lastModified, age, supportedQueryTypes } = state
+			const { obj, contentDisposition, encoding, etag, lastModified, age, supportedQueryTypes, digest } = state
 			Response.json(stream, obj, {
 				contentDisposition,
 				encoding,
 				etag,
 				lastModified,
 				age,
-				cacheControl: state.cacheControl ?? {}
+				cacheControl: state.cacheControl ?? {},
+				digest
 			}, {
 					supportedQueryTypes
 				},
@@ -113,7 +114,7 @@ export function epilogue(state) {
 				meta)
 		} break
 		case 'encoded': {
-			const { contentType, contentDisposition, encoding, etag, lastModified, age, supportedQueryTypes } = state
+			const { contentType, contentDisposition, encoding, etag, lastModified, age, supportedQueryTypes, digest } = state
 
 			Response.encoded(stream, state.obj, {
 				contentDisposition,
@@ -122,7 +123,8 @@ export function epilogue(state) {
 				etag,
 				lastModified,
 				age,
-				cacheControl: state.cacheControl ?? {}
+				cacheControl: state.cacheControl ?? {},
+				digest
 			}, {
 				supportedQueryTypes
 			},
@@ -130,7 +132,7 @@ export function epilogue(state) {
 			meta)
 		} break
 		case 'partial-bytes': {
-			const { contentType, contentDisposition, contentLength, etag, lastModified, age } = state
+			const { contentType, contentDisposition, contentLength, etag, lastModified, age, digest } = state
 
 			Response.partialContent(stream, state.objs, {
 				contentDisposition,
@@ -140,13 +142,14 @@ export function epilogue(state) {
 				etag,
 				lastModified,
 				age,
-				cacheControl: state.cacheControl ?? {}
+				cacheControl: state.cacheControl ?? {},
+				digest
 			},
 			state.context ?? {},
 			meta)
 		} break
 		case 'bytes': {
-			const { contentType, contentDisposition, contentLength, etag, lastModified, age, acceptRanges } = state
+			const { contentType, contentDisposition, contentLength, etag, lastModified, age, acceptRanges, digest } = state
 
 			Response.bytes(stream, state.obj, {
 				contentDisposition,
@@ -155,7 +158,8 @@ export function epilogue(state) {
 				etag,
 				lastModified,
 				age,
-				cacheControl: state.cacheControl ?? {}
+				cacheControl: state.cacheControl ?? {},
+				digest
 			}, {
 				acceptRanges
 			},
