@@ -341,10 +341,6 @@ export  function preamble(preState, headers, options) {
 			language: acceptLanguageItem,
 		},
 
-		get type() { throw new Error('use select.type') },
-		get encoding() { throw new Error('use select.encoding') },
-		get language() { throw new Error('use select.language') },
-
 		select: {
 			type: acceptableTypes => Accept.selectItemFrom(acceptItem, acceptableTypes ?? DEFAULT_SUPPORTED_MIME_TYPES),
 			encoding: acceptableEncodings => AcceptEncoding.selectItemFrom(acceptEncodingItem, acceptableEncodings ?? DEFAULT_SUPPORTED_ENCODINGS),

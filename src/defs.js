@@ -109,9 +109,6 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @typedef {Object} RouteRequestAccept
  * @property {RouteRequestAcceptParsed} parsed
  * @property {RouteRequestAcceptFn} select
- * @property {string|undefined} type
- * @property {string|undefined} encoding
- * @property {string|undefined} language
  */
 
 /**
