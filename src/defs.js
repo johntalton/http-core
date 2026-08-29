@@ -18,7 +18,9 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  DispositionInput,
  DigestDictionary,
  WantDigestDictionary,
- SelectedDigestResult
+ SelectedDigestResult,
+ RangeDirective,
+ RangeValue
 } from '@johntalton/http-util/headers' */
 /** @import { AcceptStyleItem,  IMFFixDate, IMFFixDateInput } from '@johntalton/http-util/util' */
 /** @import { SendBody, SendContext, SendDigest, NonEmptyArray, MultipartBytePart, SendSupportedTypes } from '@johntalton/http-util/response' */
@@ -95,7 +97,8 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @typedef {Object} RouteRequestAcceptParsed
  * @property {Array<AcceptItem> | undefined} type
  * @property {Array<AcceptStyleItem> | undefined} encoding
- * @property {Array<AcceptStyleItem>} language
+ * @property {Array<AcceptStyleItem>} language,
+ * @property {Uint8Array|undefined} availableDictionary
  */
 
 /**
@@ -109,6 +112,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @typedef {Object} RouteRequestAccept
  * @property {RouteRequestAcceptParsed} parsed
  * @property {RouteRequestAcceptFn} select
+ * @property {string|undefined} availableDictionary
  */
 
 /**
@@ -174,6 +178,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {RouteRequestAccept} accept
  * @property {RouteRemoteClient} client
  * @property {RouteConditions} conditions
+ * @property {RangeDirective<RangeValue>|undefined} range
  * @property {SecFetchMetadata} secFetchMetadata
  * @property {RequestPreferences} preferences
  * @property {AccessControlRequest} accessControlRequest
@@ -528,7 +533,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {'bytes'} type
  * @property {string} contentType
  * @property {SendBody|undefined} obj
- * @property {DispositionInput} [contentDisposition]
+ * @property {DispositionInput|undefined} [contentDisposition]
  * @property {number|undefined} [contentLength]
  * @property {EtagItem|undefined} [etag]
  * @property {IMFFixDateInput|string|undefined} [lastModified]
@@ -547,7 +552,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {'partial-bytes'} type
  * @property {NonEmptyArray<MultipartBytePart>} objs
  * @property {string} contentType
- * @property {DispositionInput} [contentDisposition]
+ * @property {DispositionInput|undefined} [contentDisposition]
  * @property {number|undefined} [contentLength]
  * @property {EtagItem|undefined} [etag]
  * @property {IMFFixDateInput|string|undefined} [lastModified]
@@ -566,7 +571,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {SendBody|undefined} obj
  * @property {string} contentType
  * @property {string|undefined} [encoding]
- * @property {DispositionInput} [contentDisposition]
+ * @property {DispositionInput|undefined} [contentDisposition]
  * @property {EtagItem|undefined} [etag]
  * @property {IMFFixDateInput|string|undefined} [lastModified]
  * @property {number|undefined} [age]
@@ -584,7 +589,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {'json'} type
  * @property {Record<any, any>} obj
  * @property {string | undefined} [encoding]
- * @property {DispositionInput} [contentDisposition]
+ * @property {DispositionInput|undefined} [contentDisposition]
  * @property {EtagItem|undefined} [etag]
  * @property {IMFFixDateInput|string|undefined} [lastModified]
  * @property {number|undefined} [age]

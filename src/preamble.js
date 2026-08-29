@@ -12,6 +12,8 @@ import {
 
 	AccessControlRequestMethod,
 
+	AvailableDictionary,
+
 	Conditional,
 	ContentDigest,
 	ContentType,
@@ -27,6 +29,7 @@ import {
 	MIME_TYPE_TEXT,
 	MIME_TYPE_XML,
 	Preferences,
+	Range,
 	ReprDigest,
 	SecFetch,
 
@@ -38,6 +41,7 @@ import {
 } from '@johntalton/http-util/headers'
 import {
 	ENCODER_MAP,
+	HTTP_HEADER_AVAILABLE_DICTIONARY,
 	HTTP_HEADER_CONTENT_DIGEST,
 	HTTP_HEADER_FORWARDED,
 	HTTP_HEADER_ORIGIN,
@@ -88,7 +92,8 @@ const {
 	// HTTP2_HEADER_FROM
 	HTTP2_HEADER_ACCESS_CONTROL_REQUEST_METHOD,
 	HTTP2_HEADER_ACCESS_CONTROL_REQUEST_HEADERS,
-	HTTP2_HEADER_PREFER
+	HTTP2_HEADER_PREFER,
+	HTTP2_HEADER_RANGE
 } = http2.constants
 
 const DEFAULT_SUPPORTED_LANGUAGES = [ 'en-US', 'en' ]
@@ -174,6 +179,12 @@ export  function preamble(preState, headers, options) {
 	const conditionIfUnmodifiedSince = headers[HTTP2_HEADER_IF_UNMODIFIED_SINCE]
 	const conditionIfRange = headers[HTTP2_HEADER_IF_RANGE]
 
+	// compression dictionary transport
+	const availableDictionaryHeader = headers[HTTP_HEADER_AVAILABLE_DICTIONARY]
+
+	//
+	const rangeHeader = headers[HTTP2_HEADER_RANGE]
+
 	// // SEC Client Hints
 	// const secUA = header[HTTP_HEADER_SEC_CH_UA]
 	// const secPlatform = header[HTTP_HEADER_SEC_CH_PLATFORM]
@@ -244,6 +255,7 @@ export  function preamble(preState, headers, options) {
 	if(!isValidLikeHeader(conditionIfModifiedSince)) { return { ...state, type: 'error', cause: 'improper header (if modified since)' } }
 	if(!isValidLikeHeader(conditionIfUnmodifiedSince)) { return { ...state, type: 'error', cause: 'improper header (if unmodified since)' } }
 	if(!isValidLikeHeader(conditionIfRange)) { return { ...state, type: 'error', cause: 'improper header (if range)' } }
+	if(!isValidLikeHeader(rangeHeader)) { return { ...state, type: 'error', cause: 'improper header (range)' }}
 	if(!isValidLikeHeader(serviceWorker)) { return { ...state, type: 'error', cause: 'improper header (service worker)' }}
 	if(!isValidLikeHeader(wantReprDigest)) { return { ...state, type: 'error', cause: 'improper header (want repr digest)' }}
 	if(!isValidLikeHeader(wantContentDigest)) { return { ...state, type: 'error', cause: 'improper header (want content digest)' }}
@@ -251,8 +263,7 @@ export  function preamble(preState, headers, options) {
 	if(!isValidLikeHeader(reprDigest)) { return { ...state, type: 'error', cause: 'improper header (repr digest)' }}
 	if(!isValidLikeHeader(contentDigest)) { return { ...state, type: 'error', cause: 'improper header (content digest)' }}
 	if(!isValidLikeHeader(unencodedDigest)) { return { ...state, type: 'error', cause: 'improper header (unencoded digest)' }}
-
-
+	if(!isValidLikeHeader(availableDictionaryHeader)) { return { ...state, type: 'error', cause: 'improper header (available dictionary)' }}
 
 	//
 	const requestUrl = new URL(fullPathAndQuery, `${scheme}://${authority}`)
@@ -275,6 +286,9 @@ export  function preamble(preState, headers, options) {
 		unmodifiedSince: InternetMessageFormatFixDate.parse(conditionIfUnmodifiedSince),
 		range: InternetMessageFormatFixDate.parse(conditionIfRange) ?? ETag.parse(conditionIfRange)
 	}
+
+	//
+	const range = Range.parse(rangeHeader)
 
 	/** @type {AccessControlRequest} */
 	const accessControlRequest = {
@@ -339,7 +353,11 @@ export  function preamble(preState, headers, options) {
 			type: acceptItem,
 			encoding: acceptEncodingItem,
 			language: acceptLanguageItem,
+
+			get availableDictionary() { return AvailableDictionary.parse(availableDictionaryHeader) },
 		},
+
+		availableDictionary: availableDictionaryHeader,
 
 		select: {
 			type: acceptableTypes => Accept.selectItemFrom(acceptItem, acceptableTypes ?? DEFAULT_SUPPORTED_MIME_TYPES),
@@ -392,6 +410,7 @@ export  function preamble(preState, headers, options) {
 		headers,
 		body,
 		conditions,
+		range,
 		secFetchMetadata,
 		preferences,
 		accept: acceptObject,
