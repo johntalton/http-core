@@ -1,11 +1,18 @@
-import http2 from 'node:http2'
-
-import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
+import {
+	HTTP_METHOD_DELETE,
+	HTTP_METHOD_GET,
+	HTTP_METHOD_HEAD,
+	HTTP_METHOD_OPTIONS,
+	HTTP_METHOD_PATCH,
+	HTTP_METHOD_POST,
+	HTTP_METHOD_PUT,
+	HTTP_METHOD_QUERY,
+	HTTP_METHOD_TRACE,
+} from '@johntalton/http-util/response'
 
 /** @import { Http2Stream, ServerHttp2Stream, IncomingHttpHeaders } from 'node:http2' */
-/** @import { SecureServerOptions } from 'node:http2' */
 
-/** @import { Metadata } from '@johntalton/http-util/response' */
+/** @import { Metadata, ProblemInstance } from '@johntalton/http-util/response' */
 /** @import { BodyFuture } from '@johntalton/http-util/body' */
 /** @import {
  AcceptItem,
@@ -13,7 +20,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  RateLimitPolicyInfo,
  RateLimitInfo,
  ChallengeItem,
- CacheControlOptions,
+ CacheControlResponseItem,
  RequestPreferences,
  DispositionInput,
  DigestDictionary,
@@ -98,6 +105,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {Array<AcceptItem> | undefined} type
  * @property {Array<AcceptStyleItem> | undefined} encoding
  * @property {Array<AcceptStyleItem>} language,
+ *
  * @property {Uint8Array|undefined} availableDictionary
  */
 
@@ -112,7 +120,9 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @typedef {Object} RouteRequestAccept
  * @property {RouteRequestAcceptParsed} parsed
  * @property {RouteRequestAcceptFn} select
+ *
  * @property {string|undefined} availableDictionary
+ * @property {string|undefined} dictionaryId
  */
 
 /**
@@ -193,7 +203,8 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
 
 /**
  * @typedef {Object} RouteResponseBase
- * @property {SendContext|undefined} [context]
+ * @property {Omit<SendContext, 'problem'>|undefined} [context]
+ * @property {ProblemInstance|undefined} [problem]
  */
 
 /**
@@ -268,7 +279,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {EtagItem|undefined} [etag]
  * @property {IMFFixDateInput|string|undefined} [lastModified]
  * @property {number|undefined} [age]
- * @property {CacheControlOptions|undefined} [cacheControl]
+ * @property {CacheControlResponseItem|undefined} [cacheControl]
  */
 /**
  * @template {Config} C
@@ -538,7 +549,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {EtagItem|undefined} [etag]
  * @property {IMFFixDateInput|string|undefined} [lastModified]
  * @property {number|undefined} [age]
- * @property {CacheControlOptions|undefined} [cacheControl]
+ * @property {CacheControlResponseItem|undefined} [cacheControl]
  * @property {SendDigest|undefined} [digest]
  * @property {'bytes'|'none'|undefined} [acceptRanges]
  */
@@ -557,7 +568,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {EtagItem|undefined} [etag]
  * @property {IMFFixDateInput|string|undefined} [lastModified]
  * @property {number|undefined} [age]
- * @property {CacheControlOptions|undefined} [cacheControl]
+ * @property {CacheControlResponseItem|undefined} [cacheControl]
  * @property {SendDigest|undefined} [digest]
  */
 /**
@@ -575,7 +586,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {EtagItem|undefined} [etag]
  * @property {IMFFixDateInput|string|undefined} [lastModified]
  * @property {number|undefined} [age]
- * @property {CacheControlOptions|undefined} [cacheControl]
+ * @property {CacheControlResponseItem|undefined} [cacheControl]
  * @property {SendDigest|undefined} [digest]
  * @property {Array<string>|undefined} [supportedQueryTypes]
  */
@@ -593,7 +604,7 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @property {EtagItem|undefined} [etag]
  * @property {IMFFixDateInput|string|undefined} [lastModified]
  * @property {number|undefined} [age]
- * @property {CacheControlOptions|undefined} [cacheControl]
+ * @property {CacheControlResponseItem|undefined} [cacheControl]
  * @property {SendDigest|undefined} [digest]
  * @property {Array<string>|undefined} [supportedQueryTypes]
  */
@@ -691,16 +702,6 @@ import { HTTP_METHOD_QUERY } from '@johntalton/http-util/response'
  * @typedef {(matches: RouteMatches, state: RouteRequest<C>) => Promise<RouteAction<C>>} RouteFunction
  */
 
-const {
-	HTTP2_METHOD_GET,
-	HTTP2_METHOD_HEAD,
-	HTTP2_METHOD_POST,
-	HTTP2_METHOD_PUT,
-	HTTP2_METHOD_PATCH,
-	HTTP2_METHOD_OPTIONS,
-	HTTP2_METHOD_DELETE,
-	HTTP2_METHOD_TRACE
-} = http2.constants
 
 /**
  * @param {Http2Stream} stream
@@ -711,16 +712,15 @@ export function isServerStream(stream) {
 	return true
 }
 
-
 export const KNOWN_METHODS = [
-	HTTP2_METHOD_GET,
-	HTTP2_METHOD_HEAD,
-	HTTP2_METHOD_POST,
-	HTTP2_METHOD_PUT,
-	HTTP2_METHOD_PATCH,
-	HTTP2_METHOD_OPTIONS,
-	HTTP2_METHOD_DELETE,
-	HTTP2_METHOD_TRACE,
+	HTTP_METHOD_GET,
+	HTTP_METHOD_HEAD,
+	HTTP_METHOD_POST,
+	HTTP_METHOD_PUT,
+	HTTP_METHOD_PATCH,
+	HTTP_METHOD_OPTIONS,
+	HTTP_METHOD_DELETE,
+	HTTP_METHOD_TRACE,
 	HTTP_METHOD_QUERY
 ]
 

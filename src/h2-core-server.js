@@ -173,6 +173,7 @@ export class H2CoreServer {
 				if(!isServerStream(stream)) { return }
 
 				// const start = performance.now()
+				// console.log('preamble', streamId)
 				const state = preamble({
 						config: this.#config,
 						streamId,

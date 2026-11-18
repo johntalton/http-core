@@ -44,51 +44,56 @@ function addSSEPortHandler(stream, port, streamId, shutdownSignal) {
  * @template {Config} C
  * @param {RouteAction<C>} state
  */
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: work horse
 export function epilogue(state) {
 	const { type, stream, meta, streamId } = state
 
 	meta.customHeaders?.push([ 'X-Request-Id', streamId ])
 
+	// reform context from exploded version
+	const context = {
+		...(state.context ?? {}),
+		problem: state.problem
+	}
+
 	switch(type) {
 		//
-		case 'trace': { Response.trace(stream, state.method, state.url, state.headers, state.context ?? {}, meta) } break
-		// case 'im-a-teapot': { Response.imATeapot(stream, state.context ?? {}, meta) } break
+		case 'trace': { Response.trace(stream, state.method, state.url, state.headers, context, meta) } break
+		// case 'im-a-teapot': { Response.imATeapot(stream, context, meta) } break
 		//
-		case 'accepted': { Response.accepted(stream, state.location, state.context ?? {}, meta) } break
-		case 'created': { Response.created(stream, new URL(state.location, meta.origin), { etag: state.etag, lastModified: state.lastModified }, state.context ?? {}, meta) } break
-		case 'preflight': { Response.preflight(stream, { supportedTypes: state.supportedTypes, supportedMethods: state.methods, supportedHeaders: state.supportedHeaders, supportedQueryTypes: state.supportedQueryTypes, acceptRanges: undefined }, state.context ?? {}, meta) } break
-		case 'no-content': { Response.noContent(stream, { etag: state.etag, lastModified: state.lastModified }, state.context ?? {}, meta) } break
-		case 'not-modified': { Response.notModified(stream, { etag: state.etag, lastModified: state.lastModified, age: state.age, cacheControl: state.cacheControl ?? {} }, state.context ?? {}, meta) } break
-		case 'found': { Response.found(stream, state.location, state.context ?? {}, meta) } break
+		case 'accepted': { Response.accepted(stream, state.location, context, meta) } break
+		case 'created': { Response.created(stream, new URL(state.location, meta.origin), { etag: state.etag, lastModified: state.lastModified }, context, meta) } break
+		case 'preflight': { Response.preflight(stream, { supportedTypes: state.supportedTypes, supportedMethods: state.methods, supportedHeaders: state.supportedHeaders, supportedQueryTypes: state.supportedQueryTypes, acceptRanges: undefined }, context, meta) } break
+		case 'no-content': { Response.noContent(stream, { etag: state.etag, lastModified: state.lastModified }, context, meta) } break
+		case 'not-modified': { Response.notModified(stream, { etag: state.etag, lastModified: state.lastModified, age: state.age, cacheControl: state.cacheControl ?? {} }, context, meta) } break
+		case 'found': { Response.found(stream, state.location, context, meta) } break
 
 		//
-		// case 'multiple-choices': { Response.multipleChoices(stream, state.context ?? {}, meta) } break
-		case 'gone': { Response.gone(stream, state.context ?? {}, meta) } break
-		case 'moved-permanently': { Response.movedPermanently(stream, state.location, state.context ?? {}, meta) } break
-		case 'see-other': { Response.seeOther(stream, state.location, state.context ?? {}, meta) } break
-		case 'temporary-redirect': { Response.temporaryRedirect(stream, state.location, state.context ?? {}, meta) } break
-		case 'permanent-redirect': { Response.permanentRedirect(stream, state.location, state.context ?? {}, meta) } break
+		// case 'multiple-choices': { Response.multipleChoices(stream, context, meta) } break
+		case 'gone': { Response.gone(stream, context, meta) } break
+		case 'moved-permanently': { Response.movedPermanently(stream, state.location, context, meta) } break
+		case 'see-other': { Response.seeOther(stream, state.location, context, meta) } break
+		case 'temporary-redirect': { Response.temporaryRedirect(stream, state.location, context, meta) } break
+		case 'permanent-redirect': { Response.permanentRedirect(stream, state.location, context, meta) } break
 
 		//
-		case '404': { Response.notFound(stream, state.message, state.context ?? {}, meta) } break
-		case 'bad-request': { Response.badRequest(stream, state.message, state.context ?? {}, meta) } break
-		case 'conflict': { Response.conflict(stream, state.context ?? {}, meta) } break
-		case 'content-too-large': { Response.contentTooLarge(stream, state.context ?? {}, meta) } break
-		case 'forbidden': { Response.forbidden(stream, state.context ?? {}, meta) } break
-		case 'not-acceptable': { Response.notAcceptable(stream, { acceptableTypes: state.acceptableTypes ?? [] }, state.context ?? {}, meta) } break
-		case 'not-allowed': { Response.notAllowed(stream, { supportedMethods: state.methods }, state.context ?? {}, meta) } break
+		case '404': { Response.notFound(stream, state.message, context, meta) } break
+		case 'bad-request': { Response.badRequest(stream, state.message, context, meta) } break
+		case 'conflict': { Response.conflict(stream, context, meta) } break
+		case 'content-too-large': { Response.contentTooLarge(stream, context, meta) } break
+		case 'forbidden': { Response.forbidden(stream, context, meta) } break
+		case 'not-acceptable': { Response.notAcceptable(stream, { acceptableTypes: state.acceptableTypes ?? [] }, context, meta) } break
+		case 'not-allowed': { Response.notAllowed(stream, { supportedMethods: state.methods }, context, meta) } break
 		// case 'payment-required': {} break
-		case 'precondition-failed': { Response.preconditionFailed(stream, { etag: state.etag, lastModified: state.lastModified }, state.context ?? {}, meta) } break
-		case 'not-satisfiable': { Response.rangeNotSatisfiable(stream, { rangeDirective: { size: state.contentLength } }, state.context ?? {}, meta) } break
-		case 'timeout': { Response.timeout(stream, state.context ?? {}, meta) } break
-		case 'too-many-requests': { Response.tooManyRequests(stream, { limitInfo: state.limit, policies: state.policies }, state.context ?? {}, meta) } break
-		case 'unauthorized': { Response.unauthorized(stream, state.challenge, state.context ?? {}, meta) } break
-		case 'unprocessable': { Response.unprocessable(stream, state.context ?? {}, meta) } break
-		case 'unsupported-media': { Response.unsupportedMediaType(stream, state.method, { supportedTypes: state.supportedTypes, supportedQueryTypes: state.supportedQueryTypes }, state.context ?? {}, meta) } break
-		case 'insufficient-storage': { Response.insufficientStorage(stream, state.context ?? {}, meta) } break
-		case 'not-implemented': { Response.notImplemented(stream, state.message, state.context ?? {}, meta) } break
-		case 'unavailable': { Response.unavailable(stream, state.message, { retryAfter: state.retryAfter }, state.context ?? {}, meta) } break
+		case 'precondition-failed': { Response.preconditionFailed(stream, { etag: state.etag, lastModified: state.lastModified }, context, meta) } break
+		case 'not-satisfiable': { Response.rangeNotSatisfiable(stream, { rangeDirective: { size: state.contentLength } }, context, meta) } break
+		case 'timeout': { Response.timeout(stream, context, meta) } break
+		case 'too-many-requests': { Response.tooManyRequests(stream, { limitInfo: state.limit, policies: state.policies }, context, meta) } break
+		case 'unauthorized': { Response.unauthorized(stream, state.challenge, context, meta) } break
+		case 'unprocessable': { Response.unprocessable(stream, context, meta) } break
+		case 'unsupported-media': { Response.unsupportedMediaType(stream, state.method, { supportedTypes: state.supportedTypes, supportedQueryTypes: state.supportedQueryTypes }, context, meta) } break
+		case 'insufficient-storage': { Response.insufficientStorage(stream, context, meta) } break
+		case 'not-implemented': { Response.notImplemented(stream, state.message, context, meta) } break
+		case 'unavailable': { Response.unavailable(stream, state.message, { retryAfter: state.retryAfter }, context, meta) } break
 
 		//
 		case 'sse': {
@@ -110,7 +115,7 @@ export function epilogue(state) {
 			}, {
 					supportedQueryTypes
 				},
-				state.context ?? {},
+				context,
 				meta)
 		} break
 		case 'encoded': {
@@ -128,7 +133,7 @@ export function epilogue(state) {
 			}, {
 				supportedQueryTypes
 			},
-			state.context ?? {},
+			context,
 			meta)
 		} break
 		case 'partial-bytes': {
@@ -145,7 +150,7 @@ export function epilogue(state) {
 				cacheControl: state.cacheControl ?? {},
 				digest
 			},
-			state.context ?? {},
+			context,
 			meta)
 		} break
 		case 'bytes': {
@@ -163,7 +168,7 @@ export function epilogue(state) {
 			}, {
 				acceptRanges
 			},
-			state.context ?? {},
+			context,
 			meta)
 		} break
 
@@ -172,7 +177,7 @@ export function epilogue(state) {
 			const { cause, error } = state
 			console.log('send error', state.streamId, cause)
 			if(error !== undefined) { console.log('send error (error)', error) }
-			Response.error(stream, cause, state.context ?? {}, meta)
+			Response.error(stream, cause, context, meta)
 		} break
 
 		//

@@ -1,7 +1,52 @@
 /** biome-ignore-all lint/style/noExcessiveLinesPerFile: does all the work */
-import http2 from 'node:http2'
 import { TLSSocket } from 'node:tls'
 
+import {
+	HTTP_HEADER_ACCEPT,
+	HTTP_HEADER_ACCEPT_ENCODING,
+	HTTP_HEADER_ACCEPT_LANGUAGE,
+	HTTP_HEADER_ACCESS_CONTROL_REQUEST_HEADERS,
+	HTTP_HEADER_ACCESS_CONTROL_REQUEST_METHOD,
+	HTTP_HEADER_AUTHORITY,
+	HTTP_HEADER_AUTHORIZATION,
+	HTTP_HEADER_AVAILABLE_DICTIONARY,
+	HTTP_HEADER_CONTENT_DIGEST,
+	HTTP_HEADER_CONTENT_LENGTH,
+	HTTP_HEADER_CONTENT_TYPE,
+	HTTP_HEADER_DICTIONARY_ID,
+	HTTP_HEADER_FORWARDED,
+	HTTP_HEADER_IF_MATCH,
+	HTTP_HEADER_IF_MODIFIED_SINCE,
+	HTTP_HEADER_IF_NONE_MATCH,
+	HTTP_HEADER_IF_RANGE,
+	HTTP_HEADER_IF_UNMODIFIED_SINCE,
+	HTTP_HEADER_MAX_FORWARDS,
+	HTTP_HEADER_METHOD,
+	HTTP_HEADER_ORIGIN,
+	HTTP_HEADER_PATH,
+	HTTP_HEADER_PREFER,
+	HTTP_HEADER_RANGE,
+	HTTP_HEADER_REPR_DIGEST,
+	HTTP_HEADER_SCHEME,
+	HTTP_HEADER_SEC_FETCH_DEST,
+	HTTP_HEADER_SEC_FETCH_MODE,
+	HTTP_HEADER_SEC_FETCH_SITE,
+	HTTP_HEADER_SEC_FETCH_USER,
+	HTTP_HEADER_SERVICE_WORKER,
+	HTTP_HEADER_UNENCODED_DIGEST,
+	HTTP_HEADER_WANT_CONTENT_DIGEST,
+	HTTP_HEADER_WANT_REPR_DIGEST,
+	HTTP_HEADER_WANT_UNENCODED_DIGEST,
+	// // HTTP_HEADER_REFERER,
+	// // HTTP_HEADER_HOST,
+	// // HTTP_HEADER_VIA,
+	// // HTTP_HEADER_CACHE_CONTROL,
+	// // HTTP_HEADER_LAST_MODIFIED,
+	// // HTTP_HEADER_FROM
+
+	//
+	HTTP_METHOD_TRACE
+} from '@johntalton/http-util'
 import { requestBody } from '@johntalton/http-util/body'
 import {
 	Accept,
@@ -17,6 +62,7 @@ import {
 	Conditional,
 	ContentDigest,
 	ContentType,
+	DictionaryID,
 	ETag,
 
 	FORWARDED_KEY_FOR,
@@ -40,21 +86,7 @@ import {
 	WantUnencodedDigest
 } from '@johntalton/http-util/headers'
 import {
-	ENCODER_MAP,
-	HTTP_HEADER_AVAILABLE_DICTIONARY,
-	HTTP_HEADER_CONTENT_DIGEST,
-	HTTP_HEADER_FORWARDED,
-	HTTP_HEADER_ORIGIN,
-	HTTP_HEADER_REPR_DIGEST,
-	HTTP_HEADER_SEC_FETCH_DEST,
-	HTTP_HEADER_SEC_FETCH_MODE,
-	HTTP_HEADER_SEC_FETCH_SITE,
-	HTTP_HEADER_SEC_FETCH_USER,
-	HTTP_HEADER_SERVICE_WORKER,
-	HTTP_HEADER_UNENCODED_DIGEST,
-	HTTP_HEADER_WANT_CONTENT_DIGEST,
-	HTTP_HEADER_WANT_REPR_DIGEST,
-	HTTP_HEADER_WANT_UNENCODED_DIGEST,
+	ENCODER_MAP
 } from '@johntalton/http-util/response'
 import { InternetMessageFormatFixDate } from '@johntalton/http-util/util'
 import { isValidHeader, isValidLikeHeader, isValidMethod, resolveAllowedOrigin } from './defs.js'
@@ -62,39 +94,6 @@ import { isValidHeader, isValidLikeHeader, isValidMethod, resolveAllowedOrigin }
 /** @import { IncomingHttpHeaders } from 'node:http2' */
 /** @import { RequestPreferences } from '@johntalton/http-util/headers' */
 /** @import { Config, H2CoreOptions, PreState, PreambleRouteResult, AccessControlRequest, RouteConditions, SecFetchMetadata, RouteRequestAccept, DigestInfo } from './defs.js' */
-
-const {
-	HTTP2_METHOD_TRACE
-} = http2.constants
-
-const {
-	HTTP2_HEADER_AUTHORITY,
-	HTTP2_HEADER_METHOD,
-	HTTP2_HEADER_SCHEME,
-	HTTP2_HEADER_PATH,
-	HTTP2_HEADER_AUTHORIZATION,
-	HTTP2_HEADER_CONTENT_TYPE,
-	HTTP2_HEADER_CONTENT_LENGTH,
-	HTTP2_HEADER_ACCEPT,
-	HTTP2_HEADER_ACCEPT_ENCODING,
-	HTTP2_HEADER_ACCEPT_LANGUAGE,
-	// HTTP2_HEADER_REFERER,
-	// HTTP2_HEADER_HOST,
-	// HTTP2_HEADER_VIA,
-	// HTTP2_HEADER_CACHE_CONTROL,
-	HTTP2_HEADER_IF_MATCH,
-	HTTP2_HEADER_IF_MODIFIED_SINCE,
-	HTTP2_HEADER_IF_NONE_MATCH,
-	HTTP2_HEADER_IF_RANGE,
-	HTTP2_HEADER_IF_UNMODIFIED_SINCE,
-	// HTTP2_HEADER_LAST_MODIFIED,
-	HTTP2_HEADER_MAX_FORWARDS,
-	// HTTP2_HEADER_FROM
-	HTTP2_HEADER_ACCESS_CONTROL_REQUEST_METHOD,
-	HTTP2_HEADER_ACCESS_CONTROL_REQUEST_HEADERS,
-	HTTP2_HEADER_PREFER,
-	HTTP2_HEADER_RANGE
-} = http2.constants
 
 const DEFAULT_SUPPORTED_LANGUAGES = [ 'en-US', 'en' ]
 const DEFAULT_SUPPORTED_MIME_TYPES = [
@@ -140,50 +139,51 @@ export  function preamble(preState, headers, options) {
 	const { stream, shutdownSignal } = preState
 
 	//
-	const method = headers[HTTP2_HEADER_METHOD]
-	const fullPathAndQuery = headers[HTTP2_HEADER_PATH]
-	const authority = headers[HTTP2_HEADER_AUTHORITY]
-	const scheme = headers[HTTP2_HEADER_SCHEME]
+	const method = headers[HTTP_HEADER_METHOD]
+	const fullPathAndQuery = headers[HTTP_HEADER_PATH]
+	const authority = headers[HTTP_HEADER_AUTHORITY]
+	const scheme = headers[HTTP_HEADER_SCHEME]
 	//
-	const authorization = headers[HTTP2_HEADER_AUTHORIZATION]
+	const authorization = headers[HTTP_HEADER_AUTHORIZATION]
 	//
 	const fullForwarded = headers[HTTP_HEADER_FORWARDED]
 	//
-	const maxForwards = headers[HTTP2_HEADER_MAX_FORWARDS]
+	const maxForwards = headers[HTTP_HEADER_MAX_FORWARDS]
 	//
-	const fullContentType = headers[HTTP2_HEADER_CONTENT_TYPE]
-	const fullContentLength = headers[HTTP2_HEADER_CONTENT_LENGTH]
-	const fullAccept = headers[HTTP2_HEADER_ACCEPT]
-	const fullAcceptEncoding = headers[HTTP2_HEADER_ACCEPT_ENCODING]
-	const fullAcceptLanguage = headers[HTTP2_HEADER_ACCEPT_LANGUAGE]
+	const fullContentType = headers[HTTP_HEADER_CONTENT_TYPE]
+	const fullContentLength = headers[HTTP_HEADER_CONTENT_LENGTH]
+	const fullAccept = headers[HTTP_HEADER_ACCEPT]
+	const fullAcceptEncoding = headers[HTTP_HEADER_ACCEPT_ENCODING]
+	const fullAcceptLanguage = headers[HTTP_HEADER_ACCEPT_LANGUAGE]
 	//
 	const origin = headers[HTTP_HEADER_ORIGIN]
-	// const host = header[HTTP2_HEADER_HOST]
-	// const referer = header[HTTP2_HEADER_REFERER]
+	// const host = header[HTTP_HEADER_HOST]
+	// const referer = header[HTTP_HEADER_REFERER]
 	// const UA = header[HTTP_HEADER_USER_AGENT]
 
 	//
-	// const from = headers[HTTP2_HEADER_FROM]
+	// const from = headers[HTTP_HEADER_FROM]
 
 	//
-	const fullAccessControlRequestHeaders = headers[HTTP2_HEADER_ACCESS_CONTROL_REQUEST_HEADERS]
-	const fullAccessControlRequestMethod = headers[HTTP2_HEADER_ACCESS_CONTROL_REQUEST_METHOD]
+	const fullAccessControlRequestHeaders = headers[HTTP_HEADER_ACCESS_CONTROL_REQUEST_HEADERS]
+	const fullAccessControlRequestMethod = headers[HTTP_HEADER_ACCESS_CONTROL_REQUEST_METHOD]
 
 	//
-	const fullPreferences = headers[HTTP2_HEADER_PREFER]
+	const fullPreferences = headers[HTTP_HEADER_PREFER]
 
 	// Conditions
-	const conditionIfMatch = headers[HTTP2_HEADER_IF_MATCH]
-	const conditionIfNoneMatch = headers[HTTP2_HEADER_IF_NONE_MATCH]
-	const conditionIfModifiedSince = headers[HTTP2_HEADER_IF_MODIFIED_SINCE]
-	const conditionIfUnmodifiedSince = headers[HTTP2_HEADER_IF_UNMODIFIED_SINCE]
-	const conditionIfRange = headers[HTTP2_HEADER_IF_RANGE]
+	const conditionIfMatch = headers[HTTP_HEADER_IF_MATCH]
+	const conditionIfNoneMatch = headers[HTTP_HEADER_IF_NONE_MATCH]
+	const conditionIfModifiedSince = headers[HTTP_HEADER_IF_MODIFIED_SINCE]
+	const conditionIfUnmodifiedSince = headers[HTTP_HEADER_IF_UNMODIFIED_SINCE]
+	const conditionIfRange = headers[HTTP_HEADER_IF_RANGE]
 
 	// compression dictionary transport
 	const availableDictionaryHeader = headers[HTTP_HEADER_AVAILABLE_DICTIONARY]
+	const dictionaryIdHeader = headers[HTTP_HEADER_DICTIONARY_ID]
 
 	//
-	const rangeHeader = headers[HTTP2_HEADER_RANGE]
+	const rangeHeader = headers[HTTP_HEADER_RANGE]
 
 	// // SEC Client Hints
 	// const secUA = header[HTTP_HEADER_SEC_CH_UA]
@@ -264,6 +264,8 @@ export  function preamble(preState, headers, options) {
 	if(!isValidLikeHeader(contentDigest)) { return { ...state, type: 'error', cause: 'improper header (content digest)' }}
 	if(!isValidLikeHeader(unencodedDigest)) { return { ...state, type: 'error', cause: 'improper header (unencoded digest)' }}
 	if(!isValidLikeHeader(availableDictionaryHeader)) { return { ...state, type: 'error', cause: 'improper header (available dictionary)' }}
+	if(!isValidLikeHeader(dictionaryIdHeader)) { return { ...state, type: 'error', cause: 'improper header (dictionary id)' }}
+
 
 	//
 	const requestUrl = new URL(fullPathAndQuery, `${scheme}://${authority}`)
@@ -346,6 +348,8 @@ export  function preamble(preState, headers, options) {
 	const acceptItem = Accept.parse(fullAccept)
 	const acceptEncodingItem = AcceptEncoding.parse(fullAcceptEncoding)
 	const acceptLanguageItem = AcceptLanguage.parse(fullAcceptLanguage)
+	const availableDictionary = AvailableDictionary.parse(availableDictionaryHeader)
+	const dictionaryId = DictionaryID.parse(dictionaryIdHeader)
 
 	/** @type {RouteRequestAccept} */
 	const acceptObject = {
@@ -354,10 +358,11 @@ export  function preamble(preState, headers, options) {
 			encoding: acceptEncodingItem,
 			language: acceptLanguageItem,
 
-			get availableDictionary() { return AvailableDictionary.parse(availableDictionaryHeader) },
+			availableDictionary,
 		},
 
-		availableDictionary: availableDictionaryHeader,
+		get availableDictionary() { return AvailableDictionary.encode(availableDictionary) },
+		dictionaryId,
 
 		select: {
 			type: acceptableTypes => Accept.selectItemFrom(acceptItem, acceptableTypes ?? DEFAULT_SUPPORTED_MIME_TYPES),
@@ -369,7 +374,7 @@ export  function preamble(preState, headers, options) {
 	//
 	// Trace
 	//
-	if(method === HTTP2_METHOD_TRACE) {
+	if(method === HTTP_METHOD_TRACE) {
 		if(!options.allowTrace) { return { ...state, type: 'not-allowed', method, methods: [] }}
 		const maxForwardsValue = maxForwards === undefined ? 0 : Number.parseInt(maxForwards, 10)
 

@@ -2,9 +2,9 @@
 
 HTTP/2 Server pre-canned to handle preamble and epilogue boundary for custom routing and service.
 
-[![npm Version](http://img.shields.io/npm/v/@johntalton/http-util.svg)](https://www.npmjs.com/package/@johntalton/http-util)
-![GitHub package.json version](https://img.shields.io/github/package-json/v/johntalton/http-util)
-[![CI](https://github.com/johntalton/http-util/actions/workflows/CI.yml/badge.svg)](https://github.com/johntalton/http-util/actions/workflows/CI.yml)
+[![npm Version](http://img.shields.io/npm/v/@johntalton/http-core.svg)](https://www.npmjs.com/package/@johntalton/http-core)
+![GitHub package.json version](https://img.shields.io/github/package-json/v/johntalton/http-core)
+[![CI](https://github.com/johntalton/http-core/actions/workflows/CI.yml/badge.svg)](https://github.com/johntalton/http-core/actions/workflows/CI.yml)
 
 ## Motivation
 
